@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, ForeignKey, Boolean, Date, Numer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
-from connector import Base
+from src.db import Base
 from src.utils.time_utils import get_utc_now
 
 

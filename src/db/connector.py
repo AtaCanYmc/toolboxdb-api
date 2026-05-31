@@ -1,7 +1,7 @@
 import os
 from contextlib import contextmanager
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 import logging
 
@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 try:
     DATABASE_URL = os.getenv("DATABASE_URL")
-except Exception as e:
-    raise ValueError("DATABASE_URL environment variable is not set") from e
+except Exception as exc:
+    raise ValueError("DATABASE_URL environment variable is not set") from exc
 
 # Pooling env variables
 POOL_PRE_PING = os.getenv("POOL_PRE_PING", "TRUE").upper() == "TRUE"  # Check before every query
@@ -56,7 +56,7 @@ class DatabaseConnector:
             yield session
             session.commit()
         except Exception as exc:
-            logger.exception(" => Database session error: %s", e)
+            logger.exception(" => Database session error: %s", exc)
             session.rollback()
             raise exc
         finally:
@@ -68,13 +68,3 @@ db_connector = DatabaseConnector(DATABASE_URL)
 
 # --- 2. SQLAlchemy ORM Base ---
 Base = declarative_base()
-
-
-# --- 3. FastAPI Dependency ---
-def get_db():
-    """
-    FastAPI endpoint'lerinde 'Depends(get_db)' olarak kullanabileceğimiz
-    ve her request-response döngüsünde taze bir session sağlayan yield yapısı.
-    """
-    with db_connector.get_db_session() as session:
-        yield session
