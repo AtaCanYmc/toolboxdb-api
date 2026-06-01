@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from src.db import get_db
 from src import models, schemas
 from sqlalchemy.orm import Session
@@ -8,5 +10,77 @@ component_router = APIRouter(prefix="/api/v1/components", tags=["Components"])
 
 
 @component_router.get("/", response_model=List[schemas.ComponentResponse])
-async def list_components(db: Session = Depends(get_db)):
-    return db.query(models.Component).order_by(models.Component.updated_at.desc()).all()
+async def list_components(
+        db: Session = Depends(get_db),
+        skip: int = 0,
+        limit: int = 100
+):
+    query = db.query(models.Component)
+    return query.order_by(models.Component.updated_at.desc()).offset(skip).limit(limit).all()
+
+
+@component_router.get("/search", response_model=List[schemas.ComponentResponse])
+async def search_components(
+        db: Session = Depends(get_db),
+        search: str = "",
+        skip: int = 0,
+        limit: int = 100,
+):
+    if len(search.strip()) == 0:
+        return []
+
+    query = db.query(models.Component)
+    query = query.filter(
+        models.Component.name.ilike(f"%{search}%") |
+        models.Component.category.ilike(f"%{search}%")
+    )
+
+    return query.order_by(models.Component.updated_at.desc()).offset(skip).limit(limit).all()
+
+
+@component_router.post("/", response_model=schemas.ComponentResponse, status_code=status.HTTP_201_CREATED)
+async def create_component(
+        component: schemas.ComponentCreate,
+        db: Session = Depends(get_db)
+):
+    db_component = models.Component(**component.model_dump())
+    db.add(db_component)
+    db.commit()
+    db.refresh(db_component)
+    return db_component
+
+
+@component_router.put("/{component_id}", response_model=schemas.ComponentResponse)
+async def update_component(
+        component_id: UUID,
+        component_update: schemas.ComponentUpdate,
+        db: Session = Depends(get_db)
+):
+    db_component = (db.query(models.Component)
+                    .filter(models.Component.id == component_id)
+                    .first())
+
+    if not db_component:
+        raise HTTPException(status_code=404, detail="Component not found")
+
+    update_data = component_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_component, key, value)
+
+    db.commit()
+    db.refresh(db_component)
+    return db_component
+
+
+@component_router.delete("/{component_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_component(component_id: UUID, db: Session = Depends(get_db)):
+    db_component = (db.query(models.Component)
+                    .filter(models.Component.id == component_id)
+                    .first())
+
+    if not db_component:
+        raise HTTPException(status_code=404, detail="Component not found.")
+
+    db.delete(db_component)
+    db.commit()
+    return None

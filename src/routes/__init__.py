@@ -1,5 +1,6 @@
 from .category_routes import category_router
 from .component_routes import component_router
+from .core_routes import core_router, custom_404_handler
 from .invoinces_routes import invoinces_router
 
 
@@ -7,11 +8,8 @@ def add_routes(app):
     app.include_router(category_router)
     app.include_router(component_router)
     app.include_router(invoinces_router)
+    app.include_router(core_router)
+    app.add_exception_handler(404, custom_404_handler)
 
 
-__all__ = [
-    "add_routes",
-    "category_router",
-    "component_router",
-    "invoinces_router"
-]
+__all__ = ["add_routes"]

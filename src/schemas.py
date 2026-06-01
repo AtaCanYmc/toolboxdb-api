@@ -34,6 +34,14 @@ class ComponentCreate(ComponentBase):
     pass
 
 
+class ComponentUpdate(BaseModel):
+    name: Optional[str] = None
+    quantity: Optional[int] = None
+    category_id: Optional[int] = None
+    datasheet_url: Optional[str] = None
+    technical_specs: Optional[Dict[str, Any]] = None
+
+
 class ComponentResponse(ComponentBase):
     id: UUID
     created_at: datetime

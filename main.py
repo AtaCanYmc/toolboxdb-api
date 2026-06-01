@@ -3,9 +3,9 @@ import os
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from src import models
 from src.db import db_connector
+from src.middleware import add_middleware
 from src.routes import add_routes
 
 # Load .env file if present. Use DOTENV_PATH to override if needed.
@@ -32,13 +32,7 @@ except Exception as e:
     raise e
 
 app = FastAPI(title="Akıllı Komponent Yönetimi - Prototip")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+add_middleware(app)
 add_routes(app)
 
 if __name__ == "__main__":
