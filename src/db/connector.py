@@ -1,23 +1,38 @@
 import os
+import logging
 from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
-import logging
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-try:
-    DATABASE_URL = os.getenv("DATABASE_URL")
-except Exception as exc:
-    raise ValueError("DATABASE_URL environment variable is not set") from exc
+DATABASE_TYPE = os.getenv("DATABASE_TYPE")
+if not DATABASE_TYPE:
+    raise ValueError("CRITICAL: 'DATABASE_TYPE' environment variable is not set in .env file!")
 
-# Pooling env variables
-POOL_PRE_PING = os.getenv("POOL_PRE_PING", "TRUE").upper() == "TRUE"  # Check before every query
-POOL_SIZE = int(os.getenv("POOL_SIZE", 5))  # Max connection count
-MAX_OVERFLOW = int(os.getenv("MAX_OVERFLOW", 10))  # Max pool overflow connection count
-POOL_RECYCLE = int(os.getenv("POOL_RECYCLE", 1800))  # 30 min default
+if DATABASE_TYPE.upper() == "SUPABASE":
+    DATABASE_URL = os.getenv("SUPABASE_DATABASE_URL")
+    if not DATABASE_URL:
+        raise ValueError("SUPABASE_DATABASE_URL is missing in .env")
+
+    POOL_PRE_PING = os.getenv("POOL_PRE_PING", "TRUE").upper() == "TRUE"
+    POOL_SIZE = int(os.getenv("POOL_SIZE", 5))
+    MAX_OVERFLOW = int(os.getenv("MAX_OVERFLOW", 10))
+    POOL_RECYCLE = int(os.getenv("POOL_RECYCLE", 1800))
+
+elif DATABASE_TYPE.upper() == "POSTGRESQL":
+    DATABASE_URL = os.getenv("LOCAL_DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/smart_components")
+
+    POOL_PRE_PING = True
+    POOL_SIZE = int(os.getenv("POOL_SIZE", 10))
+    MAX_OVERFLOW = int(os.getenv("MAX_OVERFLOW", 20))
+    POOL_RECYCLE = -1
+else:
+    raise ValueError(f"Unknown DATABASE_TYPE: {DATABASE_TYPE}. Use 'SUPABASE' or 'POSTGRESQL'.")
 
 
 class DatabaseConnector:
@@ -29,14 +44,17 @@ class DatabaseConnector:
     def __init__(self, db_url: str):
         self.db_url = db_url
 
-        # Supabase veya uzak DB bağlantılarında kopmaları önlemek için pooling (havuz) ayarları
-        self.engine = create_engine(
-            self.db_url,
-            pool_pre_ping=POOL_PRE_PING,
-            pool_size=POOL_SIZE,
-            max_overflow=MAX_OVERFLOW,
-            pool_recycle=POOL_RECYCLE
-        )
+        # SQLAlchemy Engine
+        engine_kwargs = {
+            "pool_pre_ping": POOL_PRE_PING,
+            "pool_size": POOL_SIZE,
+            "max_overflow": MAX_OVERFLOW
+        }
+
+        if POOL_RECYCLE > 0:
+            engine_kwargs["pool_recycle"] = POOL_RECYCLE
+
+        self.engine = create_engine(self.db_url, **engine_kwargs)
 
         # Session factory
         self._session_factory = sessionmaker(
@@ -49,7 +67,6 @@ class DatabaseConnector:
     def get_db_session(self):
         """
         Güvenli bir şekilde veritabanı oturumu açıp kapatan Context Manager.
-        Hata durumunda işlemleri geri alır (rollback), her durumda bağlantıyı kapatır.
         """
         session = self._session_factory()
         try:
@@ -63,7 +80,7 @@ class DatabaseConnector:
             session.close()
 
 
-# --- 1. Singleton Example ---
+# --- 1. Singleton Instance ---
 db_connector = DatabaseConnector(DATABASE_URL)
 
 # --- 2. SQLAlchemy ORM Base ---

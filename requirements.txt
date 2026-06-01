@@ -1,5 +1,12 @@
+ollama
+instructor
+groq
+openai
+pypdf
 fastapi
 uvicorn
 python-dotenv
 sqlalchemy
 pydantic
+psycopg2-binary
+python-multipart
