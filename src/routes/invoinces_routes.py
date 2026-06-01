@@ -1,14 +1,14 @@
 from datetime import datetime
 from uuid import UUID
-
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
-from pypdf import PdfReader
 from sqlalchemy.orm import Session
 from src import models, schemas
 from src.db import get_db
 from src.llm.llm_factory import get_llm_provider
 from src.llm.llm_provider import LLMProvider
 from typing import List
+
+from src.pdf.pdf_service import PDFService
 
 invoinces_router = APIRouter(prefix="/api/v1/invoices", tags=["Invoices"])
 
@@ -23,18 +23,7 @@ async def upload_and_process_invoice(
         db: Session = Depends(get_db),
         llm: LLMProvider = Depends(get_llm_provider)
 ):
-    if not file.filename.endswith('.pdf'):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Sadece PDF dosyaları kabul edilir.")
-
-    try:
-        pdf_reader = PdfReader(file.file)
-        full_text = "".join([page.extract_text() + "\n" for page in pdf_reader.pages])
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="PDF okunurken bir hata oluştu.")
-
-    if not full_text.strip():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="PDF içi boş veya taranmış resim formatında.")
+    full_text = PDFService.extract_text(file)
 
     try:
         ai_data = llm.parse_invoice(full_text, schemas.AIExtractedInvoice)

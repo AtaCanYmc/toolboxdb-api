@@ -92,15 +92,18 @@ class InvoiceResponse(InvoiceBase):
 
 class AIExtractedItem(BaseModel):
     raw_name: str = Field(description="Faturada yazan ham ürün adı")
-    clean_name: str = Field(description="Ürünün temizlenmiş net modeli/adı. Örn: 'DHT11' veya '10K Direnç'")
+    clean_name: str = Field(description="Ürünün temizlenmiş net modeli/adı. "
+                                        "Örn: 'DHT11' veya '10K Direnç'")
     quantity: int = Field(description="Satın alınan adet")
-    category: str = Field(
-        description="Komponentin uyması gereken kategori: 'Mikrodenetleyici', 'Sensör', 'Aktatör', 'Görüntü/Ekran', 'Pasif Bileşen', 'Güç/Batarya', 'Prototipleme/Kablo'")
+    category: str = Field(description=("Komponentin uyması gereken kategori: "
+                                       "'Mikrodenetleyici', 'Sensör', 'Aktatör', "
+                                       "'Görüntü/Ekran', 'Pasif Bileşen', 'Güç/Batarya', "
+                                       "'Prototipleme/Kablo'"))
 
 
 class AIExtractedInvoice(BaseModel):
-    store_name: str = Field(
-        description="Faturanın ait olduğu mağaza: 'Direnç.net', 'Robotistan', 'Robolink' veya 'Diğer'")
+    store_name: str = Field(description=("Faturanın ait olduğu mağaza: "
+                                         "'Direnç.net', 'Robotistan', 'Robolink' veya 'Diğer'"))
     invoice_date: Optional[str] = Field(None, description="Fatura tarihi (YYYY-MM-DD formatında, bulunamazsa null)")
     items: List[AIExtractedItem] = Field(description="Faturadan çıkarılan tüm ürünlerin listesi")
 
@@ -120,6 +123,7 @@ class EmbeddingChunk(BaseModel):
 class AIProjectSuggestion(BaseModel):
     project_name: str = Field(description="Önerilen projenin adı")
     difficulty: str = Field(description="Zorluk seviyesi: Başlangıç, Orta, İleri")
-    wiring_guide: str = Field(
-        description="Hangi pinin nereye bağlanacağını anlatan net devre şeması taslağı açıklaması")
-    code_sketch: str = Field(description="Arduino/C++ formatında yazılmış, derlenmeye hazır kod taslağı")
+    wiring_guide: str = Field(description=("Hangi pinin nereye bağlanacağını anlatan "
+                                           "net devre şeması taslağı açıklaması"))
+    code_sketch: str = Field(description=("Arduino/C++ formatında yazılmış, "
+                                          "derlenmeye hazır kod taslağı"))
