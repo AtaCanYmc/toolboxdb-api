@@ -1,9 +1,14 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from src.db import get_db
 import time
 
+load_dotenv()
 core_router = APIRouter(tags=["System & Health"])
 
 
@@ -11,9 +16,9 @@ core_router = APIRouter(tags=["System & Health"])
 async def root_welcome():
     """API Karşılama ve Durum Bilgisi"""
     return {
-        "project": "Akıllı Komponent Yönetimi - Prototip",
+        "project": os.getenv("APP_TITLE", "toolbox backend"),
         "status": "running",
-        "version": "1.0.0",
+        "version": os.getenv("APP_VERSION", "1.0.0"),
         "docs_url": "/docs"
     }
 
@@ -26,8 +31,8 @@ async def health_check(db: Session = Depends(get_db)):
     """
     start_time = time.time()
     try:
-        # Veritabanına çok hafif bir sorgu fırlatarak bağlantıyı test ediyoruz
-        db.execute("SELECT 1")
+        query_str = text("SELECT 1")
+        db.execute(query_str)
         db_status = "healthy"
     except Exception as e:
         db_status = f"unhealthy (Error: {str(e)})"

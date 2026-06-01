@@ -19,6 +19,7 @@ else:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+APP_TITLE = os.getenv("APP_TITLE", "toolbox backend")
 HOST = os.getenv("HOST", "127.0.0.1")
 PORT = int(os.getenv("PORT", "8000"))
 RELOAD = os.getenv("RELOAD", "TRUE").upper() == "TRUE"
@@ -31,7 +32,7 @@ except Exception as e:
     logger.error(f"Database initialization failed: {str(e)}")
     raise e
 
-app = FastAPI(title="Akıllı Komponent Yönetimi - Prototip")
+app = FastAPI(title=APP_TITLE)
 add_middleware(app)
 add_routes(app)
 
