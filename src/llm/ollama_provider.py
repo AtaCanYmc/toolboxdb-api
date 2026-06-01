@@ -2,6 +2,7 @@ import ollama
 from typing import Type
 from pydantic import BaseModel
 from src.llm.llm_provider import LLMProvider
+from src.llm.prompts import INVOICE_SYSTEM_PROMPT
 
 
 class OllamaProvider(LLMProvider):
@@ -13,9 +14,8 @@ class OllamaProvider(LLMProvider):
 
         response = ollama.chat(
             model=self.model,
-            messages=[
-                {"role": "system",
-                 "content": "Sen faturalardan elektronik parça isimlerini, adetlerini ve kategorilerini çıkaran bir asistanısın. Sadece istenen JSON formatında yanıt ver."},
+            messages=[  # type: ignore
+                {"role": "system", "content": INVOICE_SYSTEM_PROMPT},
                 {"role": "user", "content": invoice_text}
             ],
             format=json_schema  # Ollama'ya şemayı dikte ediyoruz
