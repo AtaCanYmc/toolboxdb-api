@@ -13,7 +13,7 @@ dotenv_path = os.getenv("DOTENV_PATH")
 if dotenv_path:
     load_dotenv(dotenv_path)
 else:
-    load_dotenv()  # will search for a .env file in cwd or parent directories
+    load_dotenv()
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO)
