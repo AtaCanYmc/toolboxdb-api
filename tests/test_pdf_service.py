@@ -3,6 +3,7 @@ from io import BytesIO
 from fastapi import UploadFile, HTTPException
 from unittest.mock import MagicMock, patch
 from src.pdf import PDFService
+import os
 
 
 # =====================================================================
@@ -106,3 +107,38 @@ def test_extract_text_empty_or_scanned_pdf():
 
         assert exc_info.value.status_code == 400
         assert "No meaningful text could be extracted from the PDF content." in exc_info.value.detail
+
+
+def test_extract_text_with_real_file():
+    """
+    GIVEN a real PDF file on the filesystem
+    WHEN PDFService.extract_text is called with the file stream
+    THEN it should successfully extract and return the textual content.
+    """
+    # Define the path to the real PDF file (tests/resources/ornek.pdf)
+    current_dir = os.path.dirname(__file__)
+    file_path = os.path.join(current_dir, "resources", "example.pdf")
+
+    # Ensure the test resource file actually exists
+    assert os.path.exists(file_path), f"Test PDF file not found at: {file_path}"
+
+    # Open the real file in binary read mode
+    with open(file_path, "rb") as f:
+        # Wrap the real file stream inside FastAPI's UploadFile object
+        real_upload_file = UploadFile(
+            filename="example.pdf",
+            file=f
+        )
+
+        # Invoke the service to process the actual file content
+        extracted_text = PDFService.extract_text(real_upload_file)
+
+        # Print the output to the console (visible when running `pytest -v -s`)
+        print("\n--- Extracted Real Text Start ---")
+        print(extracted_text)
+        print("--- Extracted Real Text End ---")
+
+        # Assertions to validate the service output structure and content
+        assert isinstance(extracted_text, str)
+        assert len(extracted_text.strip()) > 0
+        assert "If you can see this message PDFService works well." in extracted_text
