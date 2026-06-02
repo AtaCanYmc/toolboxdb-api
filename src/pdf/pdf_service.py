@@ -9,13 +9,13 @@ class PDFService:
     @staticmethod
     def extract_text(file: UploadFile) -> str:
         """
-        FastAPI UploadFile nesnesinden ham metni güvenli bir şekilde ayıklar.
-        İleride pypdf yerine başka bir kütüphaneye geçilirse sadece burası değişir.
+        Safely extracts raw text from the FastAPI UploadFile object.
+        If we switch to a different library instead of pypdf in the future, only this part will change.
         """
         if not file.filename.endswith('.pdf'):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Geçersiz dosya formatı. Sadece PDF dosyaları kabul edilir."
+                detail="Invalid file format. Only PDF files are accepted!"
             )
 
         try:
@@ -27,19 +27,19 @@ class PDFService:
                 if text:
                     full_text += text + "\n"
 
-            logger.info(f"PDF başarıyla okundu: {file.filename} ({len(pdf_reader.pages)} sayfa)")
+            logger.info(f"The PDF was successfully read: {file.filename} ({len(pdf_reader.pages)} pages)")
 
         except Exception as e:
-            logger.error(f"PDF okunurken teknik hata oluştu ({file.filename}): {str(e)}", exc_info=True)
+            logger.error(f"An error occurred while opening the PDF ({file.filename}): {str(e)}", exc_info=True)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="PDF dosyası ayrıştırılamadı. Dosya bozuk veya şifreli olabilir."
+                detail="The PDF file could not be parsed. The file may be corrupted or encrypted."
             )
 
         if not full_text.strip():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="PDF içeriğinden anlamlı bir metin çıkarılamadı. Dosya taranmış bir resim (scanned) olabilir."
+                detail="No meaningful text could be extracted from the PDF content. The file may be a scanned image."
             )
 
         return full_text

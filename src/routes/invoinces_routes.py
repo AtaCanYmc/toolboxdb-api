@@ -8,7 +8,7 @@ from src.llm.llm_factory import get_llm_provider
 from src.llm.llm_provider import LLMProvider
 from typing import List
 
-from src.pdf.pdf_service import PDFService
+from src.pdf import PDFService
 
 invoinces_router = APIRouter(prefix="/api/v1/invoices", tags=["Invoices"])
 
