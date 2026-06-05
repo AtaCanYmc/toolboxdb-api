@@ -1,10 +1,10 @@
 from uuid import UUID
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.db import get_db
 from src import models, schemas
 from sqlalchemy.orm import Session
 from typing import List
+from sqlalchemy import or_
 
 component_router = APIRouter(prefix="/api/v1/components", tags=["Components"])
 
@@ -28,11 +28,13 @@ async def search_components(
 ):
     if len(search.strip()) == 0:
         return []
-
-    query = db.query(models.Component)
+    # Search component by its name or its category name (case-insensitive)
+    query = db.query(models.Component).outerjoin(models.Category)
     query = query.filter(
-        models.Component.name.ilike(f"%{search}%") |
-        models.Component.category.ilike(f"%{search}%")
+        or_(
+            models.Component.name.ilike(f"%{search}%"),
+            models.Category.name.ilike(f"%{search}%")
+        )
     )
 
     return query.order_by(models.Component.updated_at.desc()).offset(skip).limit(limit).all()

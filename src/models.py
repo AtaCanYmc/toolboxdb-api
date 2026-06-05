@@ -10,12 +10,16 @@ class Category(Base):
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=get_utc_now)
+    updated_at = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
+    components = relationship("Component", back_populates="category", cascade="all, delete-orphan")
 
 
 class Component(Base):
     __tablename__ = "components"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"))
+    category = relationship("Category", back_populates="components")
     name = Column(String(255), nullable=False)
     quantity = Column(Integer, default=0)
     datasheet_url = Column(String, nullable=True)

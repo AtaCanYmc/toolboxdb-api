@@ -1,5 +1,4 @@
 import os
-
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse

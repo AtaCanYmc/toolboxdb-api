@@ -1,3 +1,4 @@
+booktype
 starlette
 contextvars
 ollama
@@ -12,4 +13,5 @@ sqlalchemy
 pydantic
 psycopg2-binary
 python-multipart
+redis>=4.6.0
 pytest

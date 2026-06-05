@@ -7,6 +7,7 @@ from src import models
 from src.db import db_connector
 from src.middleware import add_middleware
 from src.routes import add_routes
+from src.cache import init_redis, close_redis
 
 # Load .env file if present. Use DOTENV_PATH to override if needed.
 dotenv_path = os.getenv("DOTENV_PATH")
@@ -36,6 +37,17 @@ except Exception as e:
 app = FastAPI(title=APP_TITLE)
 add_middleware(app)
 add_routes(app)
+
+
+# Initialize Redis client during startup and ensure it's closed on shutdown.
+@app.on_event("startup")
+async def on_startup():
+    await init_redis(app)
+
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await close_redis(app)
 
 if __name__ == "__main__":
     uvicorn.run(

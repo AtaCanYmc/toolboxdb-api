@@ -9,6 +9,8 @@ from src.llm.llm_provider import LLMProvider
 from typing import List
 
 from src.pdf import PDFService
+from src.cache import get_redis
+from typing import Optional, Any
 
 invoinces_router = APIRouter(prefix="/api/v1/invoices", tags=["Invoices"])
 
@@ -61,7 +63,7 @@ async def upload_and_process_invoice(
 
 
 @invoinces_router.post("/{invoice_id}/approve")
-async def approve_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
+async def approve_invoice(invoice_id: UUID, db: Session = Depends(get_db), redis: Optional[Any] = Depends(get_redis)):
     items = db.query(models.InvoiceItem).filter(
         models.InvoiceItem.invoice_id == invoice_id,
         models.InvoiceItem.is_processed == False
@@ -70,6 +72,7 @@ async def approve_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
     if not items:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Onaylanacak işlenmemiş kalem bulunamadı.")
 
+    created_category = False
     for item in items:
         category_id = None
         if item.category_name:
@@ -78,6 +81,7 @@ async def approve_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
                 category = models.Category(name=item.category_name)
                 db.add(category)
                 db.flush()
+                created_category = True
             category_id = category.id
 
         existing_component = db.query(models.Component).filter(
@@ -99,6 +103,13 @@ async def approve_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
         item.is_processed = True
 
     db.commit()
+    # Invalidate categories cache if we created any new categories
+    if redis is not None and created_category:
+        try:
+            await redis.delete("categories:all")
+        except Exception:
+            pass
+
     return {"message": f"Faturadaki {len(items)} kalem başarıyla işlendi ve envanter stoğu güncellendi."}
 
 
