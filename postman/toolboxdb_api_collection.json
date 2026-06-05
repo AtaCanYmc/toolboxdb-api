@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
     "name": "ToolboxDB API - Smart Component Management",
-    "description": "Integration testing collection for ToolboxDB API including Core, Category, Components, and AI Invoice Parsing with Redis Rate Limiting validation.",
+    "description": "Production-ready integration testing collection for ToolboxDB API. Validates Core, Category CRUD, Component Queries, and full AI Invoice Workflow with Dynamic Postman variables.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -23,33 +23,85 @@
                 "health"
               ]
             },
-            "description": "Checks API sanity and Supabase database cluster connectivity using SQLAlchemy text('SELECT 1')."
+            "description": "Checks API sanity and Supabase database cluster connectivity."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Categories (Cached via Redis)",
+      "name": "Categories (Cached)",
       "item": [
         {
-          "name": "Get All Categories",
+          "name": "Create Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('last_category_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Microcontroller\"\n}"
+            },
             "url": {
-              "raw": "{{base_url}}/api/v1/category/",
+              "raw": "{{base_url}}/api/v1/category",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "category",
-                ""
+                "category"
               ]
             },
-            "description": "Fetches all categories. This endpoint is cached via Redis. Response headers will contain X-RateLimit indicators."
+            "description": "Creates a new category and invalidates 'categories:all' cache. Saves generated ID automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/category?skip=0&limit=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "category"
+              ],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Fetches categories list utilizing Redis backend layer."
           },
           "response": []
         },
@@ -59,7 +111,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/v1/category/search?q=Sensor",
+              "raw": "{{base_url}}/api/v1/category/search?search=Micro",
               "host": [
                 "{{base_url}}"
               ],
@@ -71,9 +123,118 @@
               ],
               "query": [
                 {
-                  "key": "q",
-                  "value": "Sensor",
-                  "description": "Search query. If empty or spaces only, returns empty array instantly."
+                  "key": "search",
+                  "value": "Micro",
+                  "description": "FIXED: Key changed from 'q' to 'search' to match FastAPI parameters."
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Microcontroller Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/category/{{last_category_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "category",
+                "{{last_category_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/category/{{last_category_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "category",
+                "{{last_category_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Components",
+      "item": [
+        {
+          "name": "List Components",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/components?skip=0&limit=100",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "components"
+              ],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Components",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/components/search?search=ESP32",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "components",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "ESP32"
                 }
               ]
             }
@@ -83,44 +244,34 @@
       ]
     },
     {
-      "name": "Components (Live Data)",
-      "item": [
-        {
-          "name": "Get Component by UUID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/components/123e4567-e89b-12d3-a456-426614174000",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "components",
-                "123e4567-e89b-12d3-a456-426614174000"
-              ]
-            },
-            "description": "Fetches a specific inventory card using strict path parameter validation for UUID data types."
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Invoices & AI Parsing (Heavy Workload)",
+      "name": "Invoices & AI Flow",
       "item": [
         {
           "name": "Upload PDF Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('active_invoice_id', jsonData.id);",
+                  "    if(jsonData.items && jsonData.items.length > 0) {",
+                  "        pm.collectionVariables.set('active_item_id', jsonData.items[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "X-Correlation-ID",
-                "value": "test-postman-pipeline-12345",
-                "type": "text",
-                "description": "Optional custom correlation ID tracking."
+                "value": "postman-tracing-uuid-123",
+                "type": "text"
               }
             ],
             "body": {
@@ -130,7 +281,7 @@
                   "key": "file",
                   "type": "file",
                   "src": [],
-                  "description": "The PDF invoice file. Restricted by Redis Rate Limiting to 5 requests per minute."
+                  "description": "Select sample pdf here."
                 }
               ]
             },
@@ -146,7 +297,49 @@
                 "upload"
               ]
             },
-            "description": "Triggers the pypdf text extraction and OpenAI/Ollama processing. Highly guarded by strict 5/m rate limits."
+            "description": "Extracts text, parses via LLM, maps to draft staging tables. Saves generated UUIDs automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Invoice Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/{{active_invoice_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{active_invoice_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Invoice Staging Items",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/{{active_invoice_id}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "{{active_invoice_id}}",
+                "approve"
+              ]
+            },
+            "description": "Processes staging items into final core inventory components."
           },
           "response": []
         }
@@ -159,7 +352,7 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Global pre-request scripts can go here"
+          ""
         ]
       }
     },
@@ -168,8 +361,7 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Automatically test for X-Correlation-ID presence in all responses",
-          "pm.test('Response carries tracking metadata', function () {",
+          "pm.test('Response carries global X-Correlation-ID metadata', function () {",
           "    if (pm.response.code !== 404) {",
           "        pm.expect(pm.response.headers.has('X-Correlation-ID')).to.be.true;",
           "    }",
@@ -182,6 +374,21 @@
     {
       "key": "base_url",
       "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "last_category_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "active_invoice_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "active_item_id",
+      "value": "",
       "type": "string"
     }
   ]
