@@ -11,17 +11,14 @@ Tests cover:
 """
 
 import pytest
-import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from fastapi import FastAPI, Request
 from starlette.testclient import TestClient
-from starlette.responses import PlainTextResponse
 
 from src.middleware.rate_limit import (
     RateLimitMiddleware,
     get_client_identifier,
     get_rate_limit_for_route,
-    RATE_LIMIT_CONFIG,
 )
 
 
@@ -372,11 +369,9 @@ class TestEdgeCases:
         request.client = MagicMock(host="192.168.1.100")
 
         identifier = get_client_identifier(request)
-        # Empty string is falsy, so should use request.client
-        # But our implementation splits on comma, so empty string becomes ""
-        # Let's check actual behavior
+        # Empty X-Forwarded-For should use request.client
+        assert identifier == "192.168.1.100"
 
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
