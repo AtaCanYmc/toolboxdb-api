@@ -227,11 +227,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return path in skip_paths
 
     async def _check_rate_limit(
-            self,
-            client_id: str,
-            path: str,
-            max_requests: int,
-            window_size: int,
+        self,
+        client_id: str,
+        path: str,
+        max_requests: int,
+        window_size: int,
     ) -> Dict:
         """
         Check and enforce rate limit for a client on a given path.
