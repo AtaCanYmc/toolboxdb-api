@@ -227,11 +227,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return path in skip_paths
 
     async def _check_rate_limit(
-        self,
-        client_id: str,
-        path: str,
-        max_requests: int,
-        window_size: int,
+            self,
+            client_id: str,
+            path: str,
+            max_requests: int,
+            window_size: int,
     ) -> Dict:
         """
         Check and enforce rate limit for a client on a given path.
@@ -290,10 +290,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def _get_redis(self):
         """
-        Retrieve the Redis client from the app state.
-
-        Returns:
-            The async Redis client or None if not available
+        Traverses the Starlette/FastAPI middleware stack to find the
+        root application state containing the Redis instance.
         """
-        # This is a helper to access the app's Redis client set during lifespan
-        return getattr(self.app.state, "redis", None)
+        app_instance = self.app
+        while hasattr(app_instance, "app"):
+            app_instance = app_instance.app
+
+        if hasattr(app_instance, "state"):
+            return getattr(app_instance.state, "redis", None)
+        return None
