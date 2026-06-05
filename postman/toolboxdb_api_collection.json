@@ -1,0 +1,188 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+    "name": "ToolboxDB API - Smart Component Management",
+    "description": "Integration testing collection for ToolboxDB API including Core, Category, Components, and AI Invoice Parsing with Redis Rate Limiting validation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Core & Infrastructure",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Checks API sanity and Supabase database cluster connectivity using SQLAlchemy text('SELECT 1')."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories (Cached via Redis)",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/category/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "category",
+                ""
+              ]
+            },
+            "description": "Fetches all categories. This endpoint is cached via Redis. Response headers will contain X-RateLimit indicators."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/category/search?q=Sensor",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "category",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "Sensor",
+                  "description": "Search query. If empty or spaces only, returns empty array instantly."
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Components (Live Data)",
+      "item": [
+        {
+          "name": "Get Component by UUID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/components/123e4567-e89b-12d3-a456-426614174000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "components",
+                "123e4567-e89b-12d3-a456-426614174000"
+              ]
+            },
+            "description": "Fetches a specific inventory card using strict path parameter validation for UUID data types."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Invoices & AI Parsing (Heavy Workload)",
+      "item": [
+        {
+          "name": "Upload PDF Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Correlation-ID",
+                "value": "test-postman-pipeline-12345",
+                "type": "text",
+                "description": "Optional custom correlation ID tracking."
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "The PDF invoice file. Restricted by Redis Rate Limiting to 5 requests per minute."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/upload",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "upload"
+              ]
+            },
+            "description": "Triggers the pypdf text extraction and OpenAI/Ollama processing. Highly guarded by strict 5/m rate limits."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request scripts can go here"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Automatically test for X-Correlation-ID presence in all responses",
+          "pm.test('Response carries tracking metadata', function () {",
+          "    if (pm.response.code !== 404) {",
+          "        pm.expect(pm.response.headers.has('X-Correlation-ID')).to.be.true;",
+          "    }",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    }
+  ]
+}
