@@ -1,6 +1,5 @@
 name: CI
 
-# Run on pushes and pull requests to main and develop
 on:
   push:
     branches: [ "main", "develop" ]
@@ -12,26 +11,22 @@ jobs:
     name: Test (Python 3.11) with Redis service
     runs-on: ubuntu-latest
 
-    # Environment variables required so imports/config don't crash during test collection
     env:
-      # Database configuration used by the app's db/connector - provide a mock URL
       DATABASE_TYPE: "POSTGRESQL"
       LOCAL_DATABASE_URL: "postgresql://mock:mock@localhost:5432/mock"
-      # Some code may also expect DATABASE_URL explicitly, provide it as well
       DATABASE_URL: "postgresql://mock:mock@localhost:5432/mock"
-      # Redis used by app lifespan init; GitHub Actions service hostname is `redis`
-      # Use service hostname to be robust inside the runner environment
-      REDIS_HOST: "redis"
-      REDIS_URL: "redis://redis:6379"
-      # Ensure Python uses UTF-8 (helps with some test/output scenarios)
+      # Runner çıplak Ubuntu kullandığı için Redis'e 127.0.0.1 üzerinden erişecek
+      REDIS_HOST: "127.0.0.1"
+      REDIS_PORT: 6379
+      REDIS_URL: "redis://127.0.0.1:6379"
       PYTHONUNBUFFERED: 1
 
     services:
       redis:
         image: redis:alpine
-        # Expose standard Redis port inside the job network. The service is reachable
-        # on hostname `redis` and port 6379. Mapping to localhost is not required.
-        # optional healthcheck to help runners wait for ready state
+        # Redis portunu dışarıya (runner makinesine) map ediyoruz
+        ports:
+          - 6379:6379
         options: >-
           --health-cmd "redis-cli ping || exit 1"
           --health-interval 5s
@@ -43,85 +38,59 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2) Set up Python 3.11
+      # 2) Set up Python 3.11 (pip cache entegre olarak geliyor)
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
-      # 3) Cache pip dependencies (pip cache dir)
-      - name: Cache pip
-        uses: actions/cache@v4
-        id: pip-cache
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      # 4) Upgrade pip and install dependencies
+      # 3) Upgrade pip and install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          # Install project dependencies (requirements.txt)
           pip install -r requirements.txt
-        # show environment variables for troubleshooting (non-sensitive ones)
-        env:
-          REDIS_URL: ${{ env.REDIS_URL }}
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          DATABASE_TYPE: ${{ env.DATABASE_TYPE }}
 
-      # 5) Lint / formatting check (fail the build on issues)
+      # 4) Lint / formatting check (fail the build on issues)
       - name: Lint / Format check (black + flake8)
-        # Install linting tools in the same step to avoid persistent global changes
         run: |
           python -m pip install --upgrade black==24.8.0 flake8
-          # Black check: enforce formatting rules (will exit non-zero if formatting required)
           black --check .
-          # Flake8 static analysis (exit non-zero on issues)
           flake8 .
-        # make explicit that this step should fail the job if issues are found
 
-      # 6) Wait for redis to be available on localhost:6379
+      # 5) Wait for Redis to be fully responsive on localhost
       - name: Wait for Redis to be ready
         run: |
-          python - <<'PY'
-import os, socket, time, sys
+          python -c "
+          import socket, time, sys, os
+          host = os.getenv('REDIS_HOST', '127.0.0.1')
+          port = int(os.getenv('REDIS_PORT', 6379))
+          timeout = 30
+          start = time.time()
+          print(f'Waiting for Redis at {host}:{port}...')
+          while True:
+              try:
+                  s = socket.socket()
+                  s.settimeout(1)
+                  s.connect((host, port))
+                  s.close()
+                  print('Redis is officially up and running!')
+                  sys.exit(0)
+              except Exception as e:
+                  if time.time() - start > timeout:
+                      print(f'Timed out waiting for Redis on {host}:{port}: {e}')
+                      sys.exit(1)
+                  time.sleep(1)
+          "
 
-# Try host from REDIS_HOST env first, then fallback to localhost
-host = os.getenv('REDIS_HOST', 'redis')
-port = int(os.getenv('REDIS_PORT', 6379))
-timeout = 30
-start = time.time()
-print(f"Waiting for Redis at {host}:{port}")
-while True:
-    try:
-        s = socket.socket()
-        s.settimeout(1)
-        s.connect((host, port))
-        s.close()
-        print("Redis is up")
-        sys.exit(0)
-    except Exception as e:
-        if time.time() - start > timeout:
-            print(f"Timed out waiting for Redis on {host}:{port}: {e}")
-            sys.exit(1)
-        time.sleep(1)
-PY
-
-      # 7) Run tests (pytest)
+      # 6) Run tests (pytest)
       - name: Run tests with pytest
         run: |
-          # show Python and pip versions for traceability
           python --version
           pip --version
-          # run pytest with verbose output; environment variables above ensure app config loads safely
           pytest -v
         env:
-          # pass same env vars to pytest run step explicitly
           REDIS_URL: ${{ env.REDIS_URL }}
           REDIS_HOST: ${{ env.REDIS_HOST }}
           DATABASE_URL: ${{ env.DATABASE_URL }}
           DATABASE_TYPE: ${{ env.DATABASE_TYPE }}
-
