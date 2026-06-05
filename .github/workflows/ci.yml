@@ -1,0 +1,122 @@
+name: CI
+
+# Run on pushes and pull requests to main and develop
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  test:
+    name: Test (Python 3.11) with Redis service
+    runs-on: ubuntu-latest
+
+    # Environment variables required so imports/config don't crash during test collection
+    env:
+      # Database configuration used by the app's db/connector - provide a mock URL
+      DATABASE_TYPE: "POSTGRESQL"
+      LOCAL_DATABASE_URL: "postgresql://mock:mock@localhost:5432/mock"
+      # Some code may also expect DATABASE_URL explicitly, provide it as well
+      DATABASE_URL: "postgresql://mock:mock@localhost:5432/mock"
+      # Redis used by app lifespan init; services.redis is exposed at localhost:6379
+      REDIS_URL: "redis://localhost:6379"
+      # Ensure Python uses UTF-8 (helps with some test/output scenarios)
+      PYTHONUNBUFFERED: 1
+
+    services:
+      redis:
+        image: redis:alpine
+        # map container port 6379 to the runner so REDIS_URL=redis://localhost:6379 works
+        ports:
+          - 6379:6379
+        # optional healthcheck to help runners wait for ready state
+        options: >-
+          --health-cmd "redis-cli ping || exit 1"
+          --health-interval 5s
+          --health-timeout 2s
+          --health-retries 5
+
+    steps:
+      # 1) Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Set up Python 3.11
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # 3) Cache pip dependencies (pip cache dir)
+      - name: Cache pip
+        uses: actions/cache@v4
+        id: pip-cache
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # 4) Upgrade pip and install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          # Install project dependencies (requirements.txt)
+          pip install -r requirements.txt
+        # show environment variables for troubleshooting (non-sensitive ones)
+        env:
+          REDIS_URL: ${{ env.REDIS_URL }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          DATABASE_TYPE: ${{ env.DATABASE_TYPE }}
+
+      # 5) Lint / formatting check (fail the build on issues)
+      - name: Lint / Format check (black + flake8)
+        # Install linting tools in the same step to avoid persistent global changes
+        run: |
+          python -m pip install --upgrade black==24.7.0 flake8
+          # Black check: enforce formatting rules (will exit non-zero if formatting required)
+          black --check .
+          # Flake8 static analysis (exit non-zero on issues)
+          flake8 .
+        # make explicit that this step should fail the job if issues are found
+
+      # 6) Wait for redis to be available on localhost:6379
+      - name: Wait for Redis to be ready
+        run: |
+          python - <<'PY'
+import socket, time, sys
+host = "127.0.0.1"
+port = 6379
+timeout = 30
+start = time.time()
+while True:
+    try:
+        s = socket.socket()
+        s.settimeout(1)
+        s.connect((host, port))
+        s.close()
+        print("Redis is up")
+        sys.exit(0)
+    except Exception:
+        if time.time() - start > timeout:
+            print("Timed out waiting for Redis on localhost:6379")
+            sys.exit(1)
+        time.sleep(1)
+PY
+
+      # 7) Run tests (pytest)
+      - name: Run tests with pytest
+        run: |
+          # show Python and pip versions for traceability
+          python --version
+          pip --version
+          # run pytest with verbose output; environment variables above ensure app config loads safely
+          pytest -v
+        env:
+          # pass same env vars to pytest run step explicitly
+          REDIS_URL: ${{ env.REDIS_URL }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          DATABASE_TYPE: ${{ env.DATABASE_TYPE }}
+
