@@ -182,9 +182,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
             # Attach rate-limit headers to the response
             response.headers["X-RateLimit-Limit"] = str(max_requests)
-            response.headers["X-RateLimit-Remaining"] = str(
-                limit_info["remaining"]
-            )
+            response.headers["X-RateLimit-Remaining"] = str(limit_info["remaining"])
             response.headers["X-RateLimit-Reset"] = str(limit_info["reset_at"])
 
             log_msg = (
@@ -201,7 +199,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 f"Rate limit check failed for client {client_id}: {str(e)}. "
                 f"Allowing request (fail-safe)."
             )
-            logger.error(log_msg, extra={"correlation_id": correlation_id}, exc_info=True)
+            logger.error(
+                log_msg, extra={"correlation_id": correlation_id}, exc_info=True
+            )
 
             # Continue without rate limiting
             return await call_next(request)
@@ -227,11 +227,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return path in skip_paths
 
     async def _check_rate_limit(
-            self,
-            client_id: str,
-            path: str,
-            max_requests: int,
-            window_size: int,
+        self,
+        client_id: str,
+        path: str,
+        max_requests: int,
+        window_size: int,
     ) -> Dict:
         """
         Check and enforce rate limit for a client on a given path.
