@@ -1,4 +1,4 @@
-# Akıllı Komponent Yönetim Sistemi (ToolboxDB API)
+# Intelligent Component Management System (ToolboxDB API)
 
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-brightgreen)
@@ -6,46 +6,45 @@
 ![Redis](https://img.shields.io/badge/Redis-Cache-orange)
 ![GitHub Actions CI](https://img.shields.io/badge/GitHub%20Actions-CI-white)
 
-## Proje Özeti
-**Akıllı Komponent Yönetim Sistemi (ToolboxDB API)**; maker’lar ve IoT geliştiricileri için tasarlanmış, bileşen ömürlerini izlemeye, fatura ve parti bilgilerinin AI/LLM destekli PDF ayrıştırma ile otomatik içeri aktarımına ve sorgu performansını Redis ile hızlandırmaya odaklı bir envanter yönetim hizmetidir. Sistem, doğrulama için fatura verilerini taslak olarak saklar ve ardından güvenli şekilde envantere eşler.
+## Project Overview
+The **Intelligent Component Management System (ToolboxDB API)** is built for makers and IoT developers to track component lifecycles, automatically ingest invoice and batch data via AI/LLM-powered PDF parsing, and optimize query performance using Redis caching. Parsed invoices are stored in a staging area for verification before being mapped to inventory, ensuring safe and auditable ingestion.
 
-## Temel Özellikler
-Aşağıdaki tablo ve maddeler projede öne çıkan yetenekleri özetler:
+## Core Features
+The table below summarizes the system's primary capabilities:
 
-| Özellik | Açıklama |
+| Feature | Description |
 |---|---|
-| **Automatik PDF Fatura Ayrıştırma (LLM)** | PDF'lerden yapılandırılmış (structured) çıktı üreten LLM destekli işlem hattı (öğe ayırma, miktar, tedarikçi, tarih). |
-| **Staging / Taslak Alanı** | Ayrıştırılan faturalar `is_processed = False` ile `Invoice`/`InvoiceItem` modellerinde taslak olarak saklanır; manuel/otomatik doğrulama sonrası envantere eşlenir. |
-| **Modüler Monolit Mimari & ID Tip Güvenliği** | `src/routes` yalnızca HTTP katmanını yönetir; servis mantığı `src/services` içinde. Tür güvenliği: **Components** için `UUID`, **Categories** için `int`. Router path'leri tip olarak zorlanır. |
-| **Yüksek-ROI Redis Önbellekleme** | Referans verileri (ör. kategori listesi) Redis'te cache'lenir. Yazma işlemlerinde (POST/PUT/DELETE) cache hemen invalid edilir. Dinamik envanter miktarları asla cache'lenmez. |
-| **Prod-ready Operasyonel Özellikler** | **Correlation ID** takibi; `/health` için SQLAlchemy `text("SELECT 1")` kullanılarak DB sağlık kontrolü; Docker tabanlı CI pipeline'ları. |
+| **Automated PDF Invoice Parsing (LLM)** | LLM-driven pipeline that extracts structured outputs (line items, quantities, suppliers, dates) from PDF invoices. |
+| **Staging / Draft Area** | Parsed invoices are saved as drafts (`is_processed = False`) in `Invoice`/`InvoiceItem` models for manual or automated review before final ingestion. |
+| **Modular Monolith Architecture & ID Type Safety** | `src/routes` handles HTTP concerns only; business logic lives in `src/services`. Strict typing: **Components** use `UUID`, **Categories** use `int`, and route path parameters enforce these types. |
+| **High-ROI Redis Caching** | Reference data (e.g., category lists) are cached in Redis. Write operations (POST/PUT/DELETE) immediately invalidate relevant cache keys. Dynamic inventory counts are never cached. |
+| **Production-ready Operational Features** | Correlation ID propagation, a `/health` endpoint that uses SQLAlchemy `text("SELECT 1")` for DB health checks, and Dockerized CI pipelines. |
 
-Öne çıkan maddeler:
-- Otomatik fatura -> taslak -> doğrulama -> envanter eşleme iş akışı.
-- Güçlü tip güvenliği: router seviyesinde `component_id:uuid`, `category_id:int`.
-- Cache invalidation politikasına sıkı uyum.
-- Merkezi log/izleme için `X-Correlation-ID` desteği.
+Key notes:
+- End-to-end invoice → draft → review → inventory mapping workflow.
+- Router-level type safety: `component_id:uuid`, `category_id:int`.
+- Strict cache invalidation policy and `X-Correlation-ID` support for tracing.
 
 ## Tech Stack
-- Framework & Web:
+- Framework & Server:
   - FastAPI (ASGI)
-  - Uvicorn (dev/prod runner)
-- Veritabanı & ORM:
+  - Uvicorn (development/production runner)
+- Database & ORM:
   - Supabase (PostgreSQL)
-  - SQLAlchemy (async/sync destekli)
+  - SQLAlchemy (async/sync)
 - Cache:
   - Redis (`redis-py`)
 - PDF & LLM:
   - pypdf (PDF parsing)
-  - OpenAI / Ollama (LLM sağlayıcı adaptörleri)
-- Test & QA:
+  - OpenAI / Ollama (LLM provider adapters)
+- Testing & QA:
   - Pytest
-  - Black / Flake8 (kod format & linting)
-- Diğer:
-  - Pydantic v2 (şema doğrulama)
+  - Black / Flake8
+- Other:
+  - Pydantic v2
 
-## Proje Yapısı (Öne Çıkanlar)
-Aşağıda repo içinde odaklanılması gereken alanlara dair ağaç görselleştirmesi:
+## Project Structure (Highlights)
+Focus areas and directory layout:
 
 ```
 toolboxdb-api/
@@ -60,17 +59,17 @@ toolboxdb-api/
 │  ├─ db/
 │  │  └─ connector.py
 │  ├─ llm/
-│  │  └─ ...          # LLM provider adaptörleri (openai, ollama, groq)
+│  │  └─ ...          # LLM provider adapters (openai, ollama, groq)
 │  ├─ middleware/
 │  │  └─ middleware.py # Correlation ID, error handling, request validation
 │  ├─ pdf/
-│  │  └─ pdf_service.py # PDF -> LLM ayrıştırma hattı
+│  │  └─ pdf_service.py # PDF -> LLM parsing pipeline
 │  ├─ routes/
 │  │  ├─ category_routes.py
 │  │  ├─ component_routes.py
 │  │  └─ core_routes.py
 │  ├─ services/
-│  │  └─ ...          # İş mantığı, veri eşleme, transaction yönetimi
+│  │  └─ ...          # Business logic, data mapping, transaction management
 │  ├─ models.py
 │  └─ schemas.py
 ├─ tests/
@@ -80,69 +79,66 @@ toolboxdb-api/
    └─ REDIS_SETUP.md
 ```
 
-Not: Proje, `src/routes` → HTTP katmanı; `src/services` → iş mantığı/kayıt/update; `src/middleware/middleware.py` → global error handling ve correlation-id enjekte edici olarak tasarlanmıştır.
+## Installation & Local Setup (zsh)
+These steps assume macOS with zsh:
 
-## Kurulum & Yerel Geliştirme (zsh)
-Aşağıdaki adımlar macOS + zsh ortamı için hazırlanmıştır.
-
-1. Depoyu klonlayın:
+1. Clone the repository:
 ```bash
 git clone <REPO_URL> toolboxdb-api
 cd toolboxdb-api
 ```
 
-2. Sanal ortam oluşturun ve aktif edin (`.venv`):
+2. Create and activate a virtual environment (`.venv`):
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
 ```
 
-3. Bağımlılıkları yükleyin:
+3. Install dependencies:
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-4. Yerel Redis konteynerini başlatın (geliştirme amaçlı):
+4. Start a local Redis container for development:
 ```bash
 docker run -d --name toolboxdb-redis -p 6379:6379 redis:7
 ```
 
-5. Çevresel değişkenler:
-- Proje `.env` veya CI sırlarına göre DB/REDIS/LLM anahtarlarını ayarlayın. Örnek (geliştirme):
+5. Environment variables (example):
 ```bash
 export DATABASE_URL=postgresql://user:pass@localhost:5432/toolboxdb
 export REDIS_URL=redis://localhost:6379/0
 export OPENAI_API_KEY=sk-...
 ```
 
-6. Uvicorn ile geliştirme sunucusunu başlatın:
+6. Start the development server with Uvicorn:
 ```bash
 uvicorn main:app --reload
 ```
 
-Uygulama tipik olarak `http://127.0.0.1:8000`'de çalışır. Swagger UI: `http://127.0.0.1:8000/docs`
+The application typically runs at `http://127.0.0.1:8000`. Swagger UI: `http://127.0.0.1:8000/docs`
 
-## Sağlık Kontrolleri & Güvenlik Notları
-- `/health` endpoint'i, SQLAlchemy ile DB'ye şu şekilde güvenli bir sorgu atar: `db.execute(text("SELECT 1"))`. (Ham stringler kullanılmaz.)
-- Tüm eksik yollar ve hatalar JSON yapılı özel hata cevabı döner; HTML hata sayfaları geri dönmez.
-- Arama endpoint'leri boş/yalnızca-boşluk girişlerini hızlıca `[]` ile yanıtlayarak gereksiz DB bağlantısını önler.
+## Health Checks & Security Notes
+- The `/health` endpoint should perform a safe SQLAlchemy check using: `db.execute(text("SELECT 1"))`.
+- Missing routes and errors return structured JSON error responses (no HTML error pages).
+- Search endpoints validate empty/whitespace-only input and return `[]` immediately to avoid unnecessary DB connections.
 
-## CI/CD (Kısa Açıklama)
-- `/.github/workflows/ci.yml` (veya benzeri) GitHub Actions üzerinde:
-  - Kod formatlama ve statik kontrol: **Black** ve **Flake8**
-  - Testler: **Pytest**
-  - Workflow, test aşamasında bir **Redis service container** sağlar; böylece tests Redis'e erişimli çalışır.
-  - Pipeline ayrıca Docker tabanlı entegrasyon ve image oluşturma adımlarına kolayca genişletilebilir.
+## CI/CD (Brief)
+- The repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that:
+  - Runs formatting and lint checks (Black, Flake8)
+  - Runs tests (Pytest)
+  - Uses a Redis service container during tests so test suites requiring Redis can run in CI
+  - Can be extended with Docker image builds and integration steps
 
-## İleri Okuma ve Operasyonel Öneriler
-- **Cache Invalidation**: `POST/PUT/DELETE` ile kategori değişiklikleri yapıldığında ilgili Redis anahtarları hemen invalid edilir.
-- **Invoice Staging**: PDFService + LLM sonucunu `Invoice` olarak kaydet; `is_processed=False` ile taslak bırak; manuel doğrulama sonrası `is_processed=True` ve toplu eşleme yap.
-- **Tip Güvenliği**: Router seviyesinde path parametre tiplerini açıkça belirtin:
+## Operational Recommendations
+- **Cache Invalidation:** Ensure category write operations immediately invalidate Redis keys.
+- **Invoice Staging:** Persist LLM-parsed invoice outputs as `Invoice` objects with `is_processed=False` for review; mark `is_processed=True` after validation and then map to inventory.
+- **Type Safety:** Enforce route path parameter types explicitly in routers:
   - `@router.get("/components/{component_id:uuid}")`
   - `@router.get("/categories/{category_id:int}")`
 
 ---
 
-Bu README'yi çift dilli (TR/EN) sürüm veya ek geliştirici yardımcı dosyaları (`.env.example`, `Makefile`, `devcontainer`) ile genişletmemi isterseniz bildirin; şu an kök dizine tek dilli Türkçe sürümü ekledim.
+If you want this English README to replace the root `README.md` or to be added alongside it, I can update files accordingly. I can also generate a bilingual single README combining both languages if preferred.
 
