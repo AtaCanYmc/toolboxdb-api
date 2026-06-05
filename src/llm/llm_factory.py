@@ -12,16 +12,14 @@ def get_llm_provider() -> LLMProvider:
     if provider_type == "OPENAI":
         return OpenAIProvider(
             api_key=os.getenv("OPENAI_API_KEY"),
-            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+            model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         )
     elif provider_type == "GROQ":
         return GroqProvider(
             api_key=os.getenv("GROQ_API_KEY"),
-            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-specdec")
+            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-specdec"),
         )
     elif provider_type == "OLLAMA":
-        return OllamaProvider(
-            model=os.getenv("OLLAMA_MODEL", "llama3.1")
-        )
+        return OllamaProvider(model=os.getenv("OLLAMA_MODEL", "llama3.1"))
     else:
         raise ValueError(f"Unknown LLM Provider: {provider_type}")

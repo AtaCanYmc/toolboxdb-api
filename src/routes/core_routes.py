@@ -18,7 +18,7 @@ async def root_welcome():
         "project": os.getenv("APP_TITLE", "toolbox backend"),
         "status": "running",
         "version": os.getenv("APP_VERSION", "1.0.0"),
-        "docs_url": "/docs"
+        "docs_url": "/docs",
     }
 
 
@@ -41,14 +41,10 @@ async def health_check(db: Session = Depends(get_db)):
     if "unhealthy" in db_status:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database connection is down."
+            detail="Database connection is down.",
         )
 
-    return {
-        "status": "healthy",
-        "database": db_status,
-        "latency_ms": latency
-    }
+    return {"status": "healthy", "database": db_status, "latency_ms": latency}
 
 
 # =====================================================================
@@ -61,6 +57,6 @@ def custom_404_handler(request, exc):
         content={
             "error": "Not Found",
             "message": f"İstediğiniz rota bulunamadı: '{request.url.path}'",
-            "documentation": "/docs"
-        }
+            "documentation": "/docs",
+        },
     )

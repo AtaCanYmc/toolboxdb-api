@@ -15,6 +15,7 @@ from src.db import get_db
 # FIXTURES: Setup & Teardown
 # =====================================================================
 
+
 @pytest.fixture
 def app():
     """
@@ -73,7 +74,7 @@ def sample_component_response(sample_component_uuid):
         "datasheet_url": "https://example.com/esp32.pdf",
         "technical_specs": {"voltage": "3.3V", "cores": 2},
         "created_at": now.isoformat(),
-        "updated_at": now.isoformat()
+        "updated_at": now.isoformat(),
     }
 
 
@@ -114,6 +115,7 @@ def sample_category_db():
 # =====================================================================
 # ENDPOINT 1: GET /api/v1/components/ - LIST COMPONENTS
 # =====================================================================
+
 
 def test_list_components_success(client, mock_db_session, sample_component_db):
     """
@@ -161,8 +163,12 @@ def test_list_components_with_pagination(client, mock_db_session, sample_compone
     # Assert
     assert response.status_code == 200
     # Verify pagination parameters were used
-    mock_db_session.query.return_value.order_by.return_value.offset.assert_called_with(10)
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.assert_called_with(50)
+    mock_db_session.query.return_value.order_by.return_value.offset.assert_called_with(
+        10
+    )
+    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.assert_called_with(
+        50
+    )
 
 
 def test_list_components_empty(client, mock_db_session):
@@ -172,7 +178,9 @@ def test_list_components_empty(client, mock_db_session):
     THEN it should return a 200 response with an empty list.
     """
     # Arrange
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
+        []
+    )
 
     def get_db_override():
         return mock_db_session
@@ -191,7 +199,10 @@ def test_list_components_empty(client, mock_db_session):
 # ENDPOINT 2: GET /api/v1/components/search - SEARCH COMPONENTS
 # =====================================================================
 
-def test_search_components_success(client, mock_db_session, sample_component_db, sample_category_db):
+
+def test_search_components_success(
+    client, mock_db_session, sample_component_db, sample_category_db
+):
     """
     GIVEN a component and category in the database
     WHEN calling GET /api/v1/components/search?search=ESP32
@@ -201,7 +212,8 @@ def test_search_components_success(client, mock_db_session, sample_component_db,
     search_query = "ESP32"
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
-    mock_query.outerjoin.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+    chain = mock_query.outerjoin.return_value
+    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
         sample_component_db
     ]
 
@@ -272,7 +284,10 @@ def test_search_components_no_results(client, mock_db_session):
     # Arrange
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
-    mock_query.outerjoin.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+    chain = mock_query.outerjoin.return_value
+    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
+        []
+    )
 
     def get_db_override():
         return mock_db_session
@@ -287,7 +302,9 @@ def test_search_components_no_results(client, mock_db_session):
     assert response.json() == []
 
 
-def test_search_components_case_insensitive(client, mock_db_session, sample_component_db):
+def test_search_components_case_insensitive(
+    client, mock_db_session, sample_component_db
+):
     """
     GIVEN components with mixed case names in database
     WHEN calling GET /api/v1/components/search?search=esp32 (lowercase)
@@ -296,7 +313,8 @@ def test_search_components_case_insensitive(client, mock_db_session, sample_comp
     # Arrange
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
-    mock_query.outerjoin.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+    chain = mock_query.outerjoin.return_value
+    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
         sample_component_db
     ]
 
@@ -313,7 +331,9 @@ def test_search_components_case_insensitive(client, mock_db_session, sample_comp
     assert len(response.json()) == 1
 
 
-def test_search_components_by_category_name(client, mock_db_session, sample_component_db):
+def test_search_components_by_category_name(
+    client, mock_db_session, sample_component_db
+):
     """
     GIVEN components linked to categories
     WHEN calling GET /api/v1/components/search?search=Mikrodenetleyici (category name)
@@ -322,7 +342,8 @@ def test_search_components_by_category_name(client, mock_db_session, sample_comp
     # Arrange
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
-    mock_query.outerjoin.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+    chain = mock_query.outerjoin.return_value
+    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
         sample_component_db
     ]
 
@@ -343,6 +364,7 @@ def test_search_components_by_category_name(client, mock_db_session, sample_comp
 # ENDPOINT 3: POST /api/v1/components/ - CREATE COMPONENT
 # =====================================================================
 
+
 def test_create_component_success(client, mock_db_session, sample_component_db):
     """
     GIVEN a valid ComponentCreate payload with all required fields
@@ -355,7 +377,7 @@ def test_create_component_success(client, mock_db_session, sample_component_db):
         "quantity": 5,
         "category_id": 1,
         "datasheet_url": "https://example.com/esp32.pdf",
-        "technical_specs": {"voltage": "3.3V", "cores": 2}
+        "technical_specs": {"voltage": "3.3V", "cores": 2},
     }
 
     mock_db_session.add = MagicMock()
@@ -373,10 +395,7 @@ def test_create_component_success(client, mock_db_session, sample_component_db):
         MockComponent.return_value = mock_instance
 
         # Act
-        response = client.post(
-            "/api/v1/components/",
-            json=component_payload
-        )
+        response = client.post("/api/v1/components/", json=component_payload)
 
     # Assert
     assert response.status_code == 201
@@ -385,7 +404,9 @@ def test_create_component_success(client, mock_db_session, sample_component_db):
     assert mock_db_session.refresh.called
 
 
-def test_create_component_with_zero_quantity(client, mock_db_session, sample_component_db):
+def test_create_component_with_zero_quantity(
+    client, mock_db_session, sample_component_db
+):
     """
     GIVEN a valid ComponentCreate payload with quantity=0 (boundary case)
     WHEN calling POST /api/v1/components/
@@ -397,7 +418,7 @@ def test_create_component_with_zero_quantity(client, mock_db_session, sample_com
         "quantity": 0,  # Zero quantity is valid
         "category_id": 2,
         "datasheet_url": None,
-        "technical_specs": {}
+        "technical_specs": {},
     }
 
     mock_db_session.add = MagicMock()
@@ -414,16 +435,15 @@ def test_create_component_with_zero_quantity(client, mock_db_session, sample_com
         MockComponent.return_value = mock_instance
 
         # Act
-        response = client.post(
-            "/api/v1/components/",
-            json=component_payload
-        )
+        response = client.post("/api/v1/components/", json=component_payload)
 
     # Assert
     assert response.status_code == 201
 
 
-def test_create_component_without_category(client, mock_db_session, sample_component_db):
+def test_create_component_without_category(
+    client, mock_db_session, sample_component_db
+):
     """
     GIVEN a ComponentCreate payload without a category_id (optional field)
     WHEN calling POST /api/v1/components/
@@ -432,7 +452,7 @@ def test_create_component_without_category(client, mock_db_session, sample_compo
     # Arrange
     component_payload = {
         "name": "Unclassified Component",
-        "quantity": 10
+        "quantity": 10,
         # category_id is omitted (optional)
     }
 
@@ -450,10 +470,7 @@ def test_create_component_without_category(client, mock_db_session, sample_compo
         MockComponent.return_value = mock_instance
 
         # Act
-        response = client.post(
-            "/api/v1/components/",
-            json=component_payload
-        )
+        response = client.post("/api/v1/components/", json=component_payload)
 
     # Assert
     assert response.status_code == 201
@@ -463,19 +480,21 @@ def test_create_component_without_category(client, mock_db_session, sample_compo
 # ENDPOINT 4: PUT /api/v1/components/{component_id} - UPDATE COMPONENT
 # =====================================================================
 
-def test_update_component_success(client, mock_db_session, sample_component_uuid, sample_component_db):
+
+def test_update_component_success(
+    client, mock_db_session, sample_component_uuid, sample_component_db
+):
     """
     GIVEN an existing component with a valid UUID
     WHEN calling PUT /api/v1/components/{component_id} with updated data
     THEN it should update the component and return 200 with the updated component.
     """
     # Arrange
-    component_update_payload = {
-        "name": "Updated ESP32 Board",
-        "quantity": 10
-    }
+    component_update_payload = {"name": "Updated ESP32 Board", "quantity": 10}
 
-    mock_db_session.query.return_value.filter.return_value.first.return_value = sample_component_db
+    mock_db_session.query.return_value.filter.return_value.first.return_value = (
+        sample_component_db
+    )
     mock_db_session.commit = MagicMock()
     mock_db_session.refresh = MagicMock()
 
@@ -486,8 +505,7 @@ def test_update_component_success(client, mock_db_session, sample_component_uuid
 
     # Act
     response = client.put(
-        f"/api/v1/components/{sample_component_uuid}",
-        json=component_update_payload
+        f"/api/v1/components/{sample_component_uuid}", json=component_update_payload
     )
 
     # Assert
@@ -496,7 +514,9 @@ def test_update_component_success(client, mock_db_session, sample_component_uuid
     assert mock_db_session.refresh.called
 
 
-def test_update_component_partial_update(client, mock_db_session, sample_component_uuid, sample_component_db):
+def test_update_component_partial_update(
+    client, mock_db_session, sample_component_uuid, sample_component_db
+):
     """
     GIVEN an existing component
     WHEN calling PUT /api/v1/components/{component_id} with only some fields
@@ -508,7 +528,9 @@ def test_update_component_partial_update(client, mock_db_session, sample_compone
         # name is NOT provided, should remain unchanged
     }
 
-    mock_db_session.query.return_value.filter.return_value.first.return_value = sample_component_db
+    mock_db_session.query.return_value.filter.return_value.first.return_value = (
+        sample_component_db
+    )
     mock_db_session.commit = MagicMock()
     mock_db_session.refresh = MagicMock()
 
@@ -519,8 +541,7 @@ def test_update_component_partial_update(client, mock_db_session, sample_compone
 
     # Act
     response = client.put(
-        f"/api/v1/components/{sample_component_uuid}",
-        json=partial_update
+        f"/api/v1/components/{sample_component_uuid}", json=partial_update
     )
 
     # Assert
@@ -544,8 +565,7 @@ def test_update_component_not_found(client, mock_db_session, sample_component_uu
 
     # Act
     response = client.put(
-        f"/api/v1/components/{sample_component_uuid}",
-        json={"name": "Updated Name"}
+        f"/api/v1/components/{sample_component_uuid}", json={"name": "Updated Name"}
     )
 
     # Assert
@@ -567,10 +587,7 @@ def test_update_component_invalid_uuid_format(client, mock_db_session):
     client.app.dependency_overrides[get_db] = get_db_override
 
     # Act
-    response = client.put(
-        "/api/v1/components/not-a-uuid",
-        json={"name": "Updated"}
-    )
+    response = client.put("/api/v1/components/not-a-uuid", json={"name": "Updated"})
 
     # Assert
     assert response.status_code == 422  # Validation error
@@ -580,14 +597,19 @@ def test_update_component_invalid_uuid_format(client, mock_db_session):
 # ENDPOINT 5: DELETE /api/v1/components/{component_id} - DELETE COMPONENT
 # =====================================================================
 
-def test_delete_component_success(client, mock_db_session, sample_component_uuid, sample_component_db):
+
+def test_delete_component_success(
+    client, mock_db_session, sample_component_uuid, sample_component_db
+):
     """
     GIVEN an existing component with a valid UUID
     WHEN calling DELETE /api/v1/components/{component_id}
     THEN it should delete the component and return 204 No Content.
     """
     # Arrange
-    mock_db_session.query.return_value.filter.return_value.first.return_value = sample_component_db
+    mock_db_session.query.return_value.filter.return_value.first.return_value = (
+        sample_component_db
+    )
     mock_db_session.delete = MagicMock()
     mock_db_session.commit = MagicMock()
 
@@ -651,17 +673,17 @@ def test_delete_component_invalid_uuid_format(client, mock_db_session):
 # ADVANCED EDGE CASES
 # =====================================================================
 
-def test_component_id_type_enforcement_uuid_not_string(client, mock_db_session, sample_component_db):
+
+def test_component_id_type_enforcement_uuid_not_string(
+    client, mock_db_session, sample_component_db
+):
     """
     GIVEN the requirement that Component IDs must be strict UUID types
     WHEN creating a component via POST
     THEN the returned component should have an ID that is UUID-serializable (not just a string).
     """
     # Arrange
-    component_payload = {
-        "name": "Type Safety Test",
-        "quantity": 1
-    }
+    component_payload = {"name": "Type Safety Test", "quantity": 1}
 
     mock_db_session.add = MagicMock()
     mock_db_session.commit = MagicMock()
@@ -680,10 +702,7 @@ def test_component_id_type_enforcement_uuid_not_string(client, mock_db_session, 
         MockComponent.return_value = sample_component_db
 
         # Act
-        response = client.post(
-            "/api/v1/components/",
-            json=component_payload
-        )
+        response = client.post("/api/v1/components/", json=component_payload)
 
     # Assert
     assert response.status_code == 201
@@ -695,7 +714,9 @@ def test_component_id_type_enforcement_uuid_not_string(client, mock_db_session, 
         pytest.fail(f"Component ID {data['id']} is not a valid UUID")
 
 
-def test_component_search_with_special_characters(client, mock_db_session, sample_component_db):
+def test_component_search_with_special_characters(
+    client, mock_db_session, sample_component_db
+):
     """
     GIVEN a search query with special characters (%, _, etc.)
     WHEN calling GET /api/v1/components/search
@@ -704,7 +725,8 @@ def test_component_search_with_special_characters(client, mock_db_session, sampl
     # Arrange
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
-    mock_query.outerjoin.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
+    chain = mock_query.outerjoin.return_value
+    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
         sample_component_db
     ]
 
@@ -722,20 +744,26 @@ def test_component_search_with_special_characters(client, mock_db_session, sampl
     mock_db_session.query.assert_called()
 
 
-@pytest.mark.parametrize("pagination_params,expected_offset,expected_limit", [
-    ({"skip": 0, "limit": 100}, 0, 100),
-    ({"skip": 10, "limit": 50}, 10, 50),
-    ({"skip": 100, "limit": 1}, 100, 1),
-])
-def test_pagination_parameters_applied_correctly(client, mock_db_session, pagination_params, expected_offset,
-                                                 expected_limit):
+@pytest.mark.parametrize(
+    "pagination_params,expected_offset,expected_limit",
+    [
+        ({"skip": 0, "limit": 100}, 0, 100),
+        ({"skip": 10, "limit": 50}, 10, 50),
+        ({"skip": 100, "limit": 1}, 100, 1),
+    ],
+)
+def test_pagination_parameters_applied_correctly(
+    client, mock_db_session, pagination_params, expected_offset, expected_limit
+):
     """
     GIVEN various pagination parameter combinations
     WHEN calling GET /api/v1/components/
     THEN skip and limit should be correctly applied to the database query.
     """
     # Arrange
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
+        []
+    )
 
     def get_db_override():
         return mock_db_session
@@ -749,6 +777,9 @@ def test_pagination_parameters_applied_correctly(client, mock_db_session, pagina
 
     # Assert
     assert response.status_code == 200
-    mock_db_session.query.return_value.order_by.return_value.offset.assert_called_with(expected_offset)
+    mock_db_session.query.return_value.order_by.return_value.offset.assert_called_with(
+        expected_offset
+    )
     mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.assert_called_with(
-        expected_limit)
+        expected_limit
+    )

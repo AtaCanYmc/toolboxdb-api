@@ -46,4 +46,3 @@ def get_redis(request: Request) -> Optional[object]:
     """Dependency to retrieve redis client from app.state. Returns None if not configured."""
     client = getattr(request.app.state, "redis", None)
     return client
-

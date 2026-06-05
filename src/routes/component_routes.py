@@ -11,20 +11,23 @@ component_router = APIRouter(prefix="/api/v1/components", tags=["Components"])
 
 @component_router.get("/", response_model=List[schemas.ComponentResponse])
 async def list_components(
-        db: Session = Depends(get_db),
-        skip: int = 0,
-        limit: int = 100
+    db: Session = Depends(get_db), skip: int = 0, limit: int = 100
 ):
     query = db.query(models.Component)
-    return query.order_by(models.Component.updated_at.desc()).offset(skip).limit(limit).all()
+    return (
+        query.order_by(models.Component.updated_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @component_router.get("/search", response_model=List[schemas.ComponentResponse])
 async def search_components(
-        db: Session = Depends(get_db),
-        search: str = "",
-        skip: int = 0,
-        limit: int = 100,
+    db: Session = Depends(get_db),
+    search: str = "",
+    skip: int = 0,
+    limit: int = 100,
 ):
     if len(search.strip()) == 0:
         return []
@@ -33,17 +36,23 @@ async def search_components(
     query = query.filter(
         or_(
             models.Component.name.ilike(f"%{search}%"),
-            models.Category.name.ilike(f"%{search}%")
+            models.Category.name.ilike(f"%{search}%"),
         )
     )
 
-    return query.order_by(models.Component.updated_at.desc()).offset(skip).limit(limit).all()
+    return (
+        query.order_by(models.Component.updated_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
-@component_router.post("/", response_model=schemas.ComponentResponse, status_code=status.HTTP_201_CREATED)
+@component_router.post(
+    "/", response_model=schemas.ComponentResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_component(
-        component: schemas.ComponentCreate,
-        db: Session = Depends(get_db)
+    component: schemas.ComponentCreate, db: Session = Depends(get_db)
 ):
     db_component = models.Component(**component.model_dump())
     db.add(db_component)
@@ -54,13 +63,13 @@ async def create_component(
 
 @component_router.put("/{component_id}", response_model=schemas.ComponentResponse)
 async def update_component(
-        component_id: UUID,
-        component_update: schemas.ComponentUpdate,
-        db: Session = Depends(get_db)
+    component_id: UUID,
+    component_update: schemas.ComponentUpdate,
+    db: Session = Depends(get_db),
 ):
-    db_component = (db.query(models.Component)
-                    .filter(models.Component.id == component_id)
-                    .first())
+    db_component = (
+        db.query(models.Component).filter(models.Component.id == component_id).first()
+    )
 
     if not db_component:
         raise HTTPException(status_code=404, detail="Component not found")
@@ -76,9 +85,9 @@ async def update_component(
 
 @component_router.delete("/{component_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_component(component_id: UUID, db: Session = Depends(get_db)):
-    db_component = (db.query(models.Component)
-                    .filter(models.Component.id == component_id)
-                    .first())
+    db_component = (
+        db.query(models.Component).filter(models.Component.id == component_id).first()
+    )
 
     if not db_component:
         raise HTTPException(status_code=404, detail="Component not found.")

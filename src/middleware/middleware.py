@@ -6,7 +6,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 
 logger = logging.getLogger("api_tracker")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - [%(correlation_id)s] - %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - [%(correlation_id)s] - %(message)s",
+)
 
 correlation_id_ctx_var: ContextVar[str] = ContextVar("correlation_id", default="")
 
@@ -19,28 +22,29 @@ class LoggingAndCorrelationMiddleware(BaseHTTPMiddleware):
 
         logger.info(
             f"İstek başladı: {request.method} {request.url.path}",
-            extra={"correlation_id": corr_id}
+            extra={"correlation_id": corr_id},
         )
 
         try:
             response = await call_next(request)
             process_time = round((time.time() - start_time) * 1000, 2)
 
-            logger.info(
-                f"İstek bitti: {request.method} {request.url.path} - Statü: {response.status_code} - Süre: {process_time}ms",
-                extra={"correlation_id": corr_id}
+            msg = (
+                f"İstek bitti: {request.method} {request.url.path} - Statü: {response.status_code} - "
+                f"Süre: {process_time}ms"
             )
+            logger.info(msg, extra={"correlation_id": corr_id})
 
             response.headers["X-Correlation-ID"] = corr_id
             return response
 
         except Exception as e:
             process_time = round((time.time() - start_time) * 1000, 2)
-            logger.error(
-                f"İstek patladı: {request.method} {request.url.path} - Hata: {str(e)} - Süre: {process_time}ms",
-                extra={"correlation_id": corr_id},
-                exc_info=True
+            err_msg = (
+                f"İstek patladı: {request.method} {request.url.path} - Hata: {str(e)} - "
+                f"Süre: {process_time}ms"
             )
+            logger.error(err_msg, extra={"correlation_id": corr_id}, exc_info=True)
             raise e
 
         finally:

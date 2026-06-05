@@ -10,12 +10,14 @@ class OpenAIProvider(LLMProvider):
         self.client = OpenAI(api_key=api_key)
         self.model = model
 
-    def parse_invoice(self, invoice_text: str, response_format: Type[BaseModel]) -> BaseModel:
+    def parse_invoice(
+        self, invoice_text: str, response_format: Type[BaseModel]
+    ) -> BaseModel:
         completion = self.client.beta.chat.completions.parse(
             model=self.model,
             messages=[  # type: ignore
                 {"role": "system", "content": INVOICE_SYSTEM_PROMPT},
-                {"role": "user", "content": invoice_text}
+                {"role": "user", "content": invoice_text},
             ],
             response_format=response_format,
         )

@@ -58,13 +58,13 @@ def test_extract_text_multi_page_success():
         # Creating multiple page mocks with different text
         mock_page1 = MagicMock()
         mock_page1.extract_text.return_value = "Page 1: Order Details"
-        
+
         mock_page2 = MagicMock()
         mock_page2.extract_text.return_value = "Page 2: Payment Information"
-        
+
         mock_page3 = MagicMock()
         mock_page3.extract_text.return_value = "Page 3: Shipping Address"
-        
+
         mock_reader_instance.pages = [mock_page1, mock_page2, mock_page3]
 
         # Extract text
@@ -97,16 +97,16 @@ def test_extract_text_mixed_page_content():
 
         mock_page1 = MagicMock()
         mock_page1.extract_text.return_value = ""  # Empty page
-        
+
         mock_page2 = MagicMock()
         mock_page2.extract_text.return_value = "Valid Content"
-        
+
         mock_page3 = MagicMock()
         mock_page3.extract_text.return_value = ""  # Another empty page
-        
+
         mock_page4 = MagicMock()
         mock_page4.extract_text.return_value = "More Valid Content"
-        
+
         mock_reader_instance.pages = [mock_page1, mock_page2, mock_page3, mock_page4]
 
         result = PDFService.extract_text(mock_file)
@@ -140,15 +140,18 @@ def test_extract_text_invalid_extension():
 # =====================================================================
 # SCENARIO 2b: VARIOUS INVALID EXTENSIONS
 # =====================================================================
-@pytest.mark.parametrize("invalid_filename", [
-    "document.docx",
-    "image.png",
-    "archive.zip",
-    "spreadsheet.xlsx",
-    "presentation.pptx",
-    "file.txt",
-    "data.csv"
-])
+@pytest.mark.parametrize(
+    "invalid_filename",
+    [
+        "document.docx",
+        "image.png",
+        "archive.zip",
+        "spreadsheet.xlsx",
+        "presentation.pptx",
+        "file.txt",
+        "data.csv",
+    ],
+)
 def test_extract_text_various_invalid_extensions(invalid_filename):
     """
     GIVEN various files with non-PDF extensions
@@ -232,7 +235,10 @@ def test_extract_text_empty_or_scanned_pdf():
             PDFService.extract_text(mock_file)
 
         assert exc_info.value.status_code == 400
-        assert "No meaningful text could be extracted from the PDF content." in exc_info.value.detail
+        assert (
+            "No meaningful text could be extracted from the PDF content."
+            in exc_info.value.detail
+        )
 
 
 # =====================================================================
@@ -281,10 +287,7 @@ def test_extract_text_with_real_file():
     # Open the real file in binary read mode
     with open(file_path, "rb") as f:
         # Wrap the real file stream inside FastAPI's UploadFile object
-        real_upload_file = UploadFile(
-            filename="example.pdf",
-            file=f
-        )
+        real_upload_file = UploadFile(filename="example.pdf", file=f)
 
         # Invoke the service to process the actual file content
         extracted_text = PDFService.extract_text(real_upload_file)

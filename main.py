@@ -33,11 +33,11 @@ async def lifespan(app: FastAPI):
     """
     Lifespan context manager for FastAPI application.
     Handles startup initialization and shutdown cleanup.
-    
+
     Startup (before yield):
      - Initialize database tables
      - Initialize Redis client
-    
+
     Shutdown (after yield):
      - Close Redis connection
     """
@@ -66,10 +66,4 @@ add_middleware(app)
 add_routes(app)
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host=HOST,
-        port=PORT,
-        reload=RELOAD,
-        log_level="info"
-    )
+    uvicorn.run("main:app", host=HOST, port=PORT, reload=RELOAD, log_level="info")

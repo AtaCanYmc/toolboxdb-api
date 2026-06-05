@@ -1,4 +1,4 @@
-from src.db.connector import DatabaseConnector, db_connector, Base
+from src.db.connector import db_connector, Base
 
 
 # ---  FastAPI Dependency ---
@@ -11,8 +11,4 @@ def get_db():
         yield session
 
 
-__all__ = [
-    "db_connector",
-    "get_db",
-    "Base"
-]
+__all__ = ["db_connector", "get_db", "Base"]

@@ -12,10 +12,10 @@ class PDFService:
         Safely extracts raw text from the FastAPI UploadFile object.
         If we switch to a different library instead of pypdf in the future, only this part will change.
         """
-        if not file.filename.endswith('.pdf'):
+        if not file.filename.endswith(".pdf"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid file format. Only PDF files are accepted!"
+                detail="Invalid file format. Only PDF files are accepted!",
             )
 
         try:
@@ -27,19 +27,24 @@ class PDFService:
                 if text:
                     full_text += text + "\n"
 
-            logger.info(f"The PDF was successfully read: {file.filename} ({len(pdf_reader.pages)} pages)")
+            logger.info(
+                f"The PDF was successfully read: {file.filename} ({len(pdf_reader.pages)} pages)"
+            )
 
         except Exception as e:
-            logger.error(f"An error occurred while opening the PDF ({file.filename}): {str(e)}", exc_info=True)
+            logger.error(
+                f"An error occurred while opening the PDF ({file.filename}): {str(e)}",
+                exc_info=True,
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="The PDF file could not be parsed. The file may be corrupted or encrypted."
+                detail="The PDF file could not be parsed. The file may be corrupted or encrypted.",
             )
 
         if not full_text.strip():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No meaningful text could be extracted from the PDF content. The file may be a scanned image."
+                detail="No meaningful text could be extracted from the PDF content. The file may be a scanned image.",
             )
 
         return full_text

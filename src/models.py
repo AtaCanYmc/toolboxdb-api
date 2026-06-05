@@ -1,4 +1,14 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Boolean, Date, Numeric, DateTime, JSON
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    ForeignKey,
+    Boolean,
+    Date,
+    Numeric,
+    DateTime,
+    JSON,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -11,8 +21,12 @@ class Category(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), default=get_utc_now)
-    updated_at = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
-    components = relationship("Component", back_populates="category", cascade="all, delete-orphan")
+    updated_at = Column(
+        DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now
+    )
+    components = relationship(
+        "Component", back_populates="category", cascade="all, delete-orphan"
+    )
 
 
 class Component(Base):
@@ -25,7 +39,9 @@ class Component(Base):
     datasheet_url = Column(String, nullable=True)
     technical_specs = Column(JSON, default={})
     created_at = Column(DateTime(timezone=True), default=get_utc_now)
-    updated_at = Column(DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now)
+    updated_at = Column(
+        DateTime(timezone=True), default=get_utc_now, onupdate=get_utc_now
+    )
 
 
 class Invoice(Base):
@@ -36,13 +52,17 @@ class Invoice(Base):
     total_amount = Column(Numeric(10, 2), nullable=True)
     file_path = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=get_utc_now)
-    items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
+    items = relationship(
+        "InvoiceItem", back_populates="invoice", cascade="all, delete-orphan"
+    )
 
 
 class InvoiceItem(Base):
     __tablename__ = "invoice_items"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    invoice_id = Column(UUID(as_uuid=True), ForeignKey("invoices.id", ondelete="CASCADE"))
+    invoice_id = Column(
+        UUID(as_uuid=True), ForeignKey("invoices.id", ondelete="CASCADE")
+    )
     raw_name = Column(String, nullable=False)
     clean_name = Column(String(255), nullable=True)
     quantity = Column(Integer, nullable=False)

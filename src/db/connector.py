@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 DATABASE_TYPE = os.getenv("DATABASE_TYPE")
 if not DATABASE_TYPE:
-    raise ValueError("CRITICAL: 'DATABASE_TYPE' environment variable is not set in .env file!")
+    raise ValueError(
+        "CRITICAL: 'DATABASE_TYPE' environment variable is not set in .env file!"
+    )
 
 if DATABASE_TYPE.upper() == "SUPABASE":
     DATABASE_URL = os.getenv("SUPABASE_DATABASE_URL")
@@ -25,14 +27,19 @@ if DATABASE_TYPE.upper() == "SUPABASE":
     POOL_RECYCLE = int(os.getenv("POOL_RECYCLE", 1800))
 
 elif DATABASE_TYPE.upper() == "POSTGRESQL":
-    DATABASE_URL = os.getenv("LOCAL_DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/smart_components")
+    DATABASE_URL = os.getenv(
+        "LOCAL_DATABASE_URL",
+        "postgresql://postgres:postgres@localhost:5432/smart_components",
+    )
 
     POOL_PRE_PING = True
     POOL_SIZE = int(os.getenv("POOL_SIZE", 10))
     MAX_OVERFLOW = int(os.getenv("MAX_OVERFLOW", 20))
     POOL_RECYCLE = -1
 else:
-    raise ValueError(f"Unknown DATABASE_TYPE: {DATABASE_TYPE}. Use 'SUPABASE' or 'POSTGRESQL'.")
+    raise ValueError(
+        f"Unknown DATABASE_TYPE: {DATABASE_TYPE}. Use 'SUPABASE' or 'POSTGRESQL'."
+    )
 
 
 class DatabaseConnector:
@@ -48,7 +55,7 @@ class DatabaseConnector:
         engine_kwargs = {
             "pool_pre_ping": POOL_PRE_PING,
             "pool_size": POOL_SIZE,
-            "max_overflow": MAX_OVERFLOW
+            "max_overflow": MAX_OVERFLOW,
         }
 
         if POOL_RECYCLE > 0:
@@ -58,9 +65,7 @@ class DatabaseConnector:
 
         # Session factory
         self._session_factory = sessionmaker(
-            autocommit=False,
-            autoflush=False,
-            bind=self.engine
+            autocommit=False, autoflush=False, bind=self.engine
         )
 
     @contextmanager
