@@ -139,6 +139,3 @@ The application typically runs at `http://127.0.0.1:8000`. Swagger UI: `http://1
   - `@router.get("/categories/{category_id:int}")`
 
 ---
-
-If you want this English README to replace the root `README.md` or to be added alongside it, I can update files accordingly. I can also generate a bilingual single README combining both languages if preferred.
-
