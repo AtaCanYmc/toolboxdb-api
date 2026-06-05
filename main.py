@@ -1,6 +1,7 @@
 import logging
 import os
 import uvicorn
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from src import models
@@ -26,28 +27,43 @@ HOST = os.getenv("HOST", "127.0.0.1")
 PORT = int(os.getenv("PORT", "8000"))
 RELOAD = os.getenv("RELOAD", "TRUE").upper() == "TRUE"
 
-logger.info("Connecting to database and creating tables if they don't exist...")
-try:
-    models.Base.metadata.create_all(bind=db_connector.engine)
-    logger.info("Database tables initialized successfully!")
-except Exception as e:
-    logger.error(f"Database initialization failed: {str(e)}")
-    raise e
 
-app = FastAPI(title=APP_TITLE)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager for FastAPI application.
+    Handles startup initialization and shutdown cleanup.
+    
+    Startup (before yield):
+     - Initialize database tables
+     - Initialize Redis client
+    
+    Shutdown (after yield):
+     - Close Redis connection
+    """
+    # ==================== STARTUP ====================
+    logger.info("Connecting to database and creating tables if they don't exist...")
+    try:
+        models.Base.metadata.create_all(bind=db_connector.engine)
+        logger.info("Database tables initialized successfully!")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+        raise e
+
+    # Initialize Redis client
+    await init_redis(app)
+    logger.info("Redis client initialized.")
+
+    yield
+    # ==================== SHUTDOWN ====================
+    logger.info("Shutting down: closing Redis connection...")
+    await close_redis(app)
+    logger.info("Redis connection closed. Shutdown complete.")
+
+
+app = FastAPI(title=APP_TITLE, lifespan=lifespan)
 add_middleware(app)
 add_routes(app)
-
-
-# Initialize Redis client during startup and ensure it's closed on shutdown.
-@app.on_event("startup")
-async def on_startup():
-    await init_redis(app)
-
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    await close_redis(app)
 
 if __name__ == "__main__":
     uvicorn.run(
