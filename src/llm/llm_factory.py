@@ -17,7 +17,7 @@ def get_llm_provider() -> LLMProvider:
     elif provider_type == "GROQ":
         return GroqProvider(
             api_key=os.getenv("GROQ_API_KEY"),
-            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-specdec"),
+            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
         )
     elif provider_type == "OLLAMA":
         return OllamaProvider(model=os.getenv("OLLAMA_MODEL", "llama3.1"))

@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 from datetime import datetime, date
+import re
 
 
 # =====================================================================
@@ -60,6 +61,17 @@ class InvoiceItemBase(BaseModel):
     quantity: int
     category: Optional[str] = Field(None, description="AI recomendation category")
 
+    @model_validator(mode="after")
+    def fix_package_quantity(self) -> "InvoiceItemBase":
+        match = re.search(r'(\d+)\s*(?:adet|li|lu|lü|lı|pack|x)', self.raw_name.lower())
+
+        if match:
+            extracted_multiplier = int(match.group(1))
+            if self.quantity == 1 and extracted_multiplier > 1:
+                self.quantity = extracted_multiplier
+
+        return self
+
 
 class InvoiceItemResponse(InvoiceItemBase):
     id: UUID
@@ -98,7 +110,7 @@ class AIExtractedItem(BaseModel):
     raw_name: str = Field(description="Faturada yazan ham ürün adı")
     clean_name: str = Field(
         description="Ürünün temizlenmiş net modeli/adı. "
-        "Örn: 'DHT11' veya '10K Direnç'"
+                    "Örn: 'DHT11' veya '10K Direnç'"
     )
     quantity: int = Field(description="Satın alınan adet")
     category: str = Field(

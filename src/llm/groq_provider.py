@@ -6,8 +6,10 @@ from src.llm.llm_provider import LLMProvider
 from src.llm.prompts import INVOICE_SYSTEM_PROMPT
 
 
+# models: "https://console.groq.com/docs/models"
+
 class GroqProvider(LLMProvider):
-    def __init__(self, api_key: str, model: str = "llama-3.3-70b-specdec"):
+    def __init__(self, api_key: str, model: str = "llama-3.3-70b-versatile"):
         self.client = instructor.from_groq(groq.Groq(api_key=api_key))
         self.model = model
 
