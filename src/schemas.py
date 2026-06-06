@@ -161,5 +161,48 @@ class AIProjectSuggestion(BaseModel):
         )
     )
     code_sketch: str = Field(
-        description=("Arduino/C++ formatında yazılmış, " "derlenmeye hazır kod taslağı")
+        description=("Arduino/C++ formatında yazılmış, "
+                     "derlenmeye hazır kod taslağı")
     )
+
+
+# =====================================================================
+# Suggestion
+# =====================================================================
+
+
+class ProjectSuggestionRequest(BaseModel):
+    extra_components: List[str] = Field(
+        default=[],
+        description="Stokta olmayıp kullanıcının manuel eklemek istediği ekstra parçalar"
+    )
+    difficulty_level: str = Field(
+        default="Medium",
+        description="Proje zorluk seviyesi: Beginner, Medium, Advanced"
+    )
+    extra_message: str | None = Field(
+        default=None,
+        description=("Kullanıcının yapay zekaya iletmek istediği özel not veya tema"
+                     " (Örn: Sadece akıllı ev olsun)")
+    )
+
+
+class NeededComponent(BaseModel):
+    name: str = Field(description="Komponentin temiz adı")
+    status: str = Field(description="Elinde 'Mevcut' mu yoksa dışarıdan 'Satın Alınmalı' mı?")
+
+
+class ProjectIdea(BaseModel):
+    title: str = Field(description="Projenin havalı adı")
+    description: str = Field(description=("Projenin 5-10 cümlelik kısa özeti ve ne işe yaradığı. "
+                                          "Parçaların tam olarak ne işe yaradığı açıkça söylenmeli"))
+    difficulty: str = Field(description="Belirlenen zorluk seviyesi")
+    components_breakdown: List[NeededComponent] = Field(
+        description="Proje için gereken tüm parçalar ve stok durumları"
+    )
+    estimated_build_time_hours: int = Field(description="Tahmini yapım süresi (saat)")
+    step_by_step_summary: List[str] = Field(description="Projenin yapım aşamalarının kısa ama açıklayıcı özeti")
+
+
+class ProjectSuggestionResponse(BaseModel):
+    ideas: List[ProjectIdea] = Field(description="Üretilen yaratıcı proje fikirleri listesi")

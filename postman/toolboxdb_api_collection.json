@@ -342,6 +342,36 @@
             "description": "Processes staging items into final core inventory components."
           },
           "response": []
+        },
+        {
+          "name": "Suggest AI Project Ideas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"extra_components\": [\"OLED Ekran i2c\", \"SG90 Servo Motor\"],\n    \"difficulty_level\": \"Medium\",\n    \"extra_message\": \"Akıllı ev veya otomasyon odaklı bir şeyler önerebilir misin reis\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/suggestions/project-ideas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suggestions",
+                "project-ideas"
+              ]
+            },
+            "description": "Reads core inventory automatically and processes structural project recipe cards via Jinja2 & Groq backend layer."
+          },
+          "response": []
         }
       ]
     }

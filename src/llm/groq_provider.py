@@ -35,3 +35,37 @@ class GroqProvider(LLMProvider):
                 {"role": "user", "content": invoice_text},
             ],
         )
+
+    def suggest_projects(
+            self,
+            stock_components: List[str],
+            extra_components: List[str],
+            difficulty_level: str,
+            extra_message: str | None,
+            response_format: Type[BaseModel]
+    ) -> BaseModel:
+        """
+        Eldeki komponent havuzunu Jinja2 şablonuyla işler ve
+        Groq üzerinden Pydantic yapısında proje fikirleri döndürür.
+        """
+
+        system_prompt = render_prompt(
+            template_name="project_suggest_system_prompt.jinja2",
+            context={
+                "stock_components": stock_components,
+                "extra_components": extra_components,
+                "difficulty_level": difficulty_level,
+                "extra_message": extra_message
+            }
+        )
+
+        user_content = f"Generate innovative project suggestions for difficulty level: {difficulty_level}."
+
+        return self.client.chat.completions.create(  # type: ignore
+            model=self.model,
+            response_model=response_format,
+            messages=[  # type: ignore
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ]
+        )

@@ -13,3 +13,17 @@ class LLMProvider(ABC):
     ) -> BaseModel:
         """Parse the given invoice text and return structured data in the specified format."""
         pass
+
+    @abstractmethod
+    def suggest_projects(
+            self,
+            stock_components: List[str],
+            extra_components: List[str],
+            difficulty_level: str,
+            extra_message: str | None,
+            response_format: Type[BaseModel],
+    ) -> BaseModel:
+        """
+        Brainstorm innovative maker project ideas based on available components and user criteria.
+        """
+        pass

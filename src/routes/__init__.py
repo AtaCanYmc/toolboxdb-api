@@ -2,6 +2,7 @@ from .category_routes import category_router
 from .component_routes import component_router
 from .core_routes import core_router, custom_404_handler
 from .invoinces_routes import invoinces_router
+from .suggestion_routes import suggestion_router
 
 
 def add_routes(app):
@@ -9,6 +10,7 @@ def add_routes(app):
     app.include_router(component_router)
     app.include_router(invoinces_router)
     app.include_router(core_router)
+    app.include_router(suggestion_router)
     app.add_exception_handler(404, custom_404_handler)
 
 
