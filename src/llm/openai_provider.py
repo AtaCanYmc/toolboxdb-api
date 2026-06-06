@@ -33,3 +33,43 @@ class OpenAIProvider(LLMProvider):
             response_format=response_format,
         )
         return completion.choices[0].message.parsed
+
+    def suggest_projects(
+            self,
+            stock_components: List[str],
+            extra_components: List[str],
+            difficulty_level: str,
+            extra_message: str | None,
+            response_format: Type[BaseModel]
+    ) -> BaseModel:
+        """
+        Brainstorm innovative maker project ideas based on available components and user criteria.
+         - stock_components: The basic components the user has (e.g., "Arduino, LED, Resistor").
+         - extra_components: Additional components that can be used (e.g., "Bluetooth module, LCD screen").
+         - difficulty_level: The desired difficulty level for the projects.
+         - extra_message: Any additional instructions or preferences from the user.
+         - response_format: The Pydantic model class that defines the expected structure of the response.
+         Returns a structured response containing project suggestions that fit the given criteria.
+        """
+
+        system_prompt = render_prompt(
+            template_name="project_suggest_system_prompt.jinja2",
+            context={
+                "stock_components": stock_components,
+                "extra_components": extra_components,
+                "difficulty_level": difficulty_level,
+                "extra_message": extra_message
+            }
+        )
+
+        user_content = f"Generate innovative project suggestions for difficulty level: {difficulty_level}."
+
+        completion = self.client.beta.chat.completions.parse(
+            model=self.model,
+            response_format=response_format,
+            messages=[  # type: ignore
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ]
+        )
+        return completion.choices[0].message.parsed

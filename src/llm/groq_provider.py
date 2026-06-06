@@ -45,8 +45,13 @@ class GroqProvider(LLMProvider):
             response_format: Type[BaseModel]
     ) -> BaseModel:
         """
-        Eldeki komponent havuzunu Jinja2 şablonuyla işler ve
-        Groq üzerinden Pydantic yapısında proje fikirleri döndürür.
+        Brainstorm innovative maker project ideas based on available components and user criteria.
+         - stock_components: The basic components the user has (e.g., "Arduino, LED, Resistor").
+         - extra_components: Additional components that can be used (e.g., "Bluetooth module, LCD screen").
+         - difficulty_level: The desired difficulty level for the projects.
+         - extra_message: Any additional instructions or preferences from the user.
+         - response_format: The Pydantic model class that defines the expected structure of the response.
+         Returns a structured response containing project suggestions that fit the given criteria.
         """
 
         system_prompt = render_prompt(
