@@ -163,6 +163,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         try:
             # Check rate limit (returns None if Redis is unavailable)
             limit_info = await self._check_rate_limit(
+                request=request,
                 client_id=client_id,
                 path=request.url.path,
                 max_requests=max_requests,
@@ -252,6 +253,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     async def _check_rate_limit(
         self,
+        request: Request,
         client_id: str,
         path: str,
         max_requests: int,
@@ -286,7 +288,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             
             None if Redis is unavailable or any operation fails (fail-open).
         """
-        redis_client = self._get_redis()
+        redis_client = getattr(request.app.state, "redis", None)
         if redis_client is None:
             logger.warning(
                 "Redis client not available. Rate limiting disabled (fail-open)."
@@ -330,16 +332,3 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 exc_info=True,
             )
             return None
-
-    def _get_redis(self):
-        """
-        Traverses the Starlette/FastAPI middleware stack to find the
-        root application state containing the Redis instance.
-        """
-        app_instance = self.app
-        while hasattr(app_instance, "app"):
-            app_instance = app_instance.app
-
-        if hasattr(app_instance, "state"):
-            return getattr(app_instance.state, "redis", None)
-        return None

@@ -4,6 +4,10 @@ from src import models, schemas
 from src.db import get_db
 from src.llm.llm_factory import get_llm_provider
 from src.llm.llm_provider import LLMProvider
+import logging
+from src.middleware.middleware import get_correlation_id
+
+logger = logging.getLogger("api_tracker")
 
 suggestion_router = APIRouter(prefix="/api/v1/suggestions", tags=["Project Insights"])
 
@@ -24,6 +28,11 @@ async def get_ai_project_suggestions(
     harmanlayarak AI tabanlı structured proje reçeteleri üretir.
     """
     try:
+        corr_id = get_correlation_id()
+        logger.info(
+            "Fetching active components for project suggestions", 
+            extra={"correlation_id": corr_id}
+        )
         # 1. Veritabanında miktarı 0'dan büyük olan aktif komponent kartlarını çekiyoruz
         active_components = (
             db.query(models.Component)
@@ -34,6 +43,11 @@ async def get_ai_project_suggestions(
         # 2. LLM katmanının (Gevşek Bağlılık/Loose Coupling) bizden beklediği saf string listesini hazırlıyoruz
         stock_component_names = [c.name for c in active_components]
 
+        logger.info(
+            f"Generating suggestions with difficulty: {payload.difficulty_level}", 
+            extra={"correlation_id": corr_id}
+        )
+        
         # 3. ABC Kontratımıza yeni eklediğimiz soyut metodu tetikliyoruz
         ai_suggestions = llm.suggest_projects(
             stock_components=stock_component_names,
@@ -43,11 +57,18 @@ async def get_ai_project_suggestions(
             response_format=schemas.ProjectSuggestionResponse
         )
 
+        logger.info(
+            "Project suggestions generated successfully", 
+            extra={"correlation_id": corr_id}
+        )
         return ai_suggestions
 
     except Exception as e:
-        # Kurumsal hata loglama standartlarına uygun olarak 500 fırlatıyoruz
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Proje fikirleri üretilirken bir yapay zeka hatası oluştu: {str(e)}"
+        corr_id = get_correlation_id()
+        logger.error(
+            "Yapay zeka proje fikirleri üretilirken hata oluştu", 
+            extra={"correlation_id": corr_id}, 
+            exc_info=True
         )
+        # Fail-Open Resilience Layer: Hata fırlatmak yerine boş bir yanıt dönüyoruz
+        return schemas.ProjectSuggestionResponse(ideas=[])

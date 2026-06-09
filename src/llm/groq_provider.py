@@ -4,6 +4,11 @@ from typing import Type, List
 from pydantic import BaseModel
 from src.llm.llm_provider import LLMProvider
 from src.llm.prompt_provider import render_prompt
+import logging
+from src.middleware.middleware import get_correlation_id
+import time
+
+logger = logging.getLogger("api_tracker")
 
 
 # models: "https://console.groq.com/docs/models"
@@ -27,14 +32,36 @@ class GroqProvider(LLMProvider):
             context={"existing_categories": existing_categories},
         )
 
-        return self.client.chat.completions.create(  # type: ignore
-            model=self.model,
-            response_model=response_format,
-            messages=[  # type: ignore
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": invoice_text},
-            ],
+        corr_id = get_correlation_id()
+        logger.info(
+            f"Sending parse_invoice request to Groq using model: {self.model}",
+            extra={"correlation_id": corr_id}
         )
+        
+        start_time = time.time()
+        try:
+            result = self.client.chat.completions.create(  # type: ignore
+                model=self.model,
+                response_model=response_format,
+                messages=[  # type: ignore
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": invoice_text},
+                ],
+            )
+            process_time = round((time.time() - start_time) * 1000, 2)
+            logger.info(
+                f"Groq parse_invoice request completed in {process_time}ms",
+                extra={"correlation_id": corr_id}
+            )
+            return result
+        except Exception as e:
+            process_time = round((time.time() - start_time) * 1000, 2)
+            logger.error(
+                f"Groq parse_invoice request failed after {process_time}ms: {str(e)}",
+                extra={"correlation_id": corr_id},
+                exc_info=True
+            )
+            raise e
 
     def suggest_projects(
             self,
@@ -66,11 +93,33 @@ class GroqProvider(LLMProvider):
 
         user_content = f"Generate innovative project suggestions for difficulty level: {difficulty_level}."
 
-        return self.client.chat.completions.create(  # type: ignore
-            model=self.model,
-            response_model=response_format,
-            messages=[  # type: ignore
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content}
-            ]
+        corr_id = get_correlation_id()
+        logger.info(
+            f"Sending suggest_projects request to Groq using model: {self.model}",
+            extra={"correlation_id": corr_id}
         )
+
+        start_time = time.time()
+        try:
+            result = self.client.chat.completions.create(  # type: ignore
+                model=self.model,
+                response_model=response_format,
+                messages=[  # type: ignore
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content}
+                ]
+            )
+            process_time = round((time.time() - start_time) * 1000, 2)
+            logger.info(
+                f"Groq suggest_projects request completed in {process_time}ms",
+                extra={"correlation_id": corr_id}
+            )
+            return result
+        except Exception as e:
+            process_time = round((time.time() - start_time) * 1000, 2)
+            logger.error(
+                f"Groq suggest_projects request failed after {process_time}ms: {str(e)}",
+                extra={"correlation_id": corr_id},
+                exc_info=True
+            )
+            raise e

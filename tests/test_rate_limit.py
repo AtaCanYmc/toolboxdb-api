@@ -186,10 +186,15 @@ class TestRateLimitMiddleware:
         redis_mock.expire = AsyncMock()
 
         middleware.app = MagicMock()
+        del middleware.app.app  # Prevent infinite loop during _get_redis traversal
         middleware.app.state = MagicMock(redis=redis_mock)
+
+        mock_request = MagicMock()
+        mock_request.app = middleware.app
 
         # Check what key is constructed
         await middleware._check_rate_limit(
+            request=mock_request,
             client_id="192.168.1.100",
             path="/api/v1/invoices",
             max_requests=20,

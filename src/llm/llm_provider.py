@@ -11,7 +11,17 @@ class LLMProvider(ABC):
             response_format: Type[BaseModel],
             existing_categories: List[str] = None,
     ) -> BaseModel:
-        """Parse the given invoice text and return structured data in the specified format."""
+        """
+        Parse the given invoice text and return structured data in the specified format.
+
+        Args:
+            invoice_text (str): The raw text extracted from the invoice.
+            response_format (Type[BaseModel]): The Pydantic model representing the expected output structure.
+            existing_categories (List[str], optional): A list of existing component categories to match against. Defaults to None.
+
+        Returns:
+            BaseModel: An instance of `response_format` populated with the extracted invoice data.
+        """
         pass
 
     @abstractmethod
@@ -25,5 +35,15 @@ class LLMProvider(ABC):
     ) -> BaseModel:
         """
         Brainstorm innovative maker project ideas based on available components and user criteria.
+
+        Args:
+            stock_components (List[str]): List of components currently available in stock.
+            extra_components (List[str]): List of additional components the user wants to include.
+            difficulty_level (str): Target difficulty level for the projects (e.g., 'Beginner', 'Medium', 'Advanced').
+            extra_message (str | None): Optional additional instructions or theme from the user.
+            response_format (Type[BaseModel]): The Pydantic model representing the expected output structure.
+
+        Returns:
+            BaseModel: An instance of `response_format` containing the generated project ideas.
         """
         pass

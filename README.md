@@ -138,4 +138,9 @@ The application typically runs at `http://127.0.0.1:8000`. Swagger UI: `http://1
   - `@router.get("/components/{component_id:uuid}")`
   - `@router.get("/categories/{category_id:int}")`
 
+## AI Project Suggestions
+- The system includes a new `POST /api/v1/suggestions/project-ideas` endpoint that uses LLMs (like Groq) to suggest innovative maker projects based on your current stock.
+- **Fail-Open Architecture:** If the LLM service experiences downtime or returns an error, the endpoint gracefully catches the error and returns an empty list `{"ideas": []}` (HTTP 200) instead of crashing with an HTTP 500. This ensures uninterrupted frontend operation.
+- **Tracing:** All requests are traced via `X-Correlation-ID`, mapping logs across API router entry/exit and LLM executions.
+
 ---
