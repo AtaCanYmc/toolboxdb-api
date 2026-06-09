@@ -78,3 +78,36 @@ class OllamaProvider(LLMProvider):
         )
 
         return response_format.model_validate_json(response["message"]["content"])
+
+    def get_project_details(
+        self,
+        project_title: str,
+        project_description: str,
+        difficulty: str,
+        components: List[str],
+        response_format: Type[BaseModel],
+    ) -> BaseModel:
+        json_schema = response_format.model_json_schema()
+
+        system_prompt = render_prompt(
+            template_name="project_detail_system_prompt.jinja2",
+            context={
+                "project_title": project_title,
+                "project_description": project_description,
+                "difficulty": difficulty,
+                "components": components,
+            },
+        )
+
+        user_content = f"Lütfen '{project_title}' projesi için detaylı devre şeması ve kod taslağını oluştur."
+
+        response = ollama.chat(
+            model=self.model,
+            messages=[  # type: ignore
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+            format=json_schema,
+        )
+
+        return response_format.model_validate_json(response["message"]["content"])

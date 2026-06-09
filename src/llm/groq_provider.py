@@ -124,3 +124,54 @@ class GroqProvider(LLMProvider):
                 exc_info=True,
             )
             raise e
+
+    def get_project_details(
+        self,
+        project_title: str,
+        project_description: str,
+        difficulty: str,
+        components: List[str],
+        response_format: Type[BaseModel],
+    ) -> BaseModel:
+        system_prompt = render_prompt(
+            template_name="project_detail_system_prompt.jinja2",
+            context={
+                "project_title": project_title,
+                "project_description": project_description,
+                "difficulty": difficulty,
+                "components": components,
+            },
+        )
+
+        user_content = f"Lütfen '{project_title}' projesi için detaylı devre şeması ve kod taslağını oluştur."
+
+        corr_id = get_correlation_id()
+        logger.info(
+            f"Sending get_project_details request to Groq using model: {self.model}",
+            extra={"correlation_id": corr_id},
+        )
+
+        start_time = time.time()
+        try:
+            result = self.client.chat.completions.create(  # type: ignore
+                model=self.model,
+                response_model=response_format,
+                messages=[  # type: ignore
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ],
+            )
+            process_time = round((time.time() - start_time) * 1000, 2)
+            logger.info(
+                f"Groq get_project_details request completed in {process_time}ms",
+                extra={"correlation_id": corr_id},
+            )
+            return result
+        except Exception as e:
+            process_time = round((time.time() - start_time) * 1000, 2)
+            logger.error(
+                f"Groq get_project_details request failed after {process_time}ms: {str(e)}",
+                extra={"correlation_id": corr_id},
+                exc_info=True,
+            )
+            raise e

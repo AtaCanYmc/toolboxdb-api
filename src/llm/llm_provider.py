@@ -48,3 +48,17 @@ class LLMProvider(ABC):
             BaseModel: An instance of `response_format` containing the generated project ideas.
         """
         pass
+
+    @abstractmethod
+    def get_project_details(
+        self,
+        project_title: str,
+        project_description: str,
+        difficulty: str,
+        components: List[str],
+        response_format: Type[BaseModel],
+    ) -> BaseModel:
+        """
+        Generate detailed wiring guide and code sketch for a specific project.
+        """
+        pass

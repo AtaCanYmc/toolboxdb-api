@@ -73,3 +73,33 @@ class OpenAIProvider(LLMProvider):
             ],
         )
         return completion.choices[0].message.parsed
+
+    def get_project_details(
+        self,
+        project_title: str,
+        project_description: str,
+        difficulty: str,
+        components: List[str],
+        response_format: Type[BaseModel],
+    ) -> BaseModel:
+        system_prompt = render_prompt(
+            template_name="project_detail_system_prompt.jinja2",
+            context={
+                "project_title": project_title,
+                "project_description": project_description,
+                "difficulty": difficulty,
+                "components": components,
+            },
+        )
+
+        user_content = f"Lütfen '{project_title}' projesi için detaylı devre şeması ve kod taslağını oluştur."
+
+        completion = self.client.beta.chat.completions.parse(
+            model=self.model,
+            response_format=response_format,
+            messages=[  # type: ignore
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+        )
+        return completion.choices[0].message.parsed

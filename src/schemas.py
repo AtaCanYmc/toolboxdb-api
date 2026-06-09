@@ -188,6 +188,15 @@ class ProjectSuggestionRequest(BaseModel):
     )
 
 
+class ProjectDetailRequest(BaseModel):
+    project_title: str = Field(description="Detaylandırılacak projenin adı")
+    project_description: str = Field(description="Projenin kısa özeti")
+    difficulty: str = Field(description="Projenin zorluk seviyesi")
+    components: List[str] = Field(
+        description="Projeye dahil edilecek parçaların isimleri"
+    )
+
+
 class NeededComponent(BaseModel):
     name: str = Field(description="Komponentin temiz adı")
     status: str = Field(
