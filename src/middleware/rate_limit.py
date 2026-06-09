@@ -302,12 +302,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             window_start = (current_time // window_size) * window_size
             redis_key = f"rate_limit:{path}:{client_id}:{window_start}"
 
-            # Atomic increment in Redis
-            current_count = await redis_client.incr(redis_key)
+            # Execute increment and conditional TTL atomically via pipeline (single round-trip)
+            async with redis_client.pipeline(transaction=True) as pipe:
+                # SET NX ensures the key TTL is only established on the first increment
+                pipe.set(redis_key, 0, ex=window_size, nx=True)
+                pipe.incr(redis_key)
+                results = await pipe.execute()
 
-            # Set expiry on first request in the window
-            if current_count == 1:
-                await redis_client.expire(redis_key, window_size)
+            # results[0] is from set, results[1] is the result of incr
+            current_count = results[1]
 
             # Calculate reset time (end of current window)
             reset_at = window_start + window_size

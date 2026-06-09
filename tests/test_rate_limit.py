@@ -181,9 +181,12 @@ class TestRateLimitMiddleware:
         """When: Checking rate limit for a client
         Then: Construct Redis key correctly."""
         middleware = RateLimitMiddleware(MagicMock())
-        redis_mock = AsyncMock()
-        redis_mock.incr = AsyncMock(return_value=1)
-        redis_mock.expire = AsyncMock()
+        redis_mock = MagicMock()
+        pipe_mock = AsyncMock()
+        pipe_mock.execute.return_value = [True, 1]
+        ctx = MagicMock()
+        ctx.__aenter__.return_value = pipe_mock
+        redis_mock.pipeline.return_value = ctx
 
         middleware.app = MagicMock()
         del middleware.app.app  # Prevent infinite loop during _get_redis traversal
@@ -202,7 +205,7 @@ class TestRateLimitMiddleware:
         )
 
         # Verify incr was called with a properly formatted key
-        calls = redis_mock.incr.call_args_list
+        calls = pipe_mock.incr.call_args_list
         assert len(calls) > 0
         key = calls[0][0][0]
         assert "rate_limit:" in key
@@ -283,9 +286,12 @@ class TestRateLimitIntegration:
     def test_rate_limit_headers_present_on_success(self, test_client):
         """When: Request is successful and within limit
         Then: Include rate-limit headers in response."""
-        test_client.app.state.redis = AsyncMock()
-        test_client.app.state.redis.incr = AsyncMock(return_value=1)
-        test_client.app.state.redis.expire = AsyncMock()
+        test_client.app.state.redis = MagicMock()
+        pipe_mock = AsyncMock()
+        pipe_mock.execute.return_value = [True, 1]
+        ctx = MagicMock()
+        ctx.__aenter__.return_value = pipe_mock
+        test_client.app.state.redis.pipeline.return_value = ctx
 
         response = test_client.get(
             "/api/v1/test",

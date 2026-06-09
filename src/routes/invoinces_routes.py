@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from src import models, schemas
 from src.db import get_db
@@ -87,29 +88,55 @@ async def approve_invoice(
             detail="Onaylanacak işlenmemiş kalem bulunamadı.",
         )
 
+    # Extract distinct target names
+    category_names = {
+        item.category_name.lower(): item.category_name
+        for item in items
+        if item.category_name
+    }
+    clean_names = {
+        item.clean_name.lower(): item.clean_name for item in items if item.clean_name
+    }
+
+    # Pre-fetch matching categories and components securely (No raw ilike)
+    existing_categories = []
+    if category_names:
+        existing_categories = (
+            db.query(models.Category)
+            .filter(func.lower(models.Category.name).in_(category_names.keys()))
+            .all()
+        )
+
+    existing_components = []
+    if clean_names:
+        existing_components = (
+            db.query(models.Component)
+            .filter(func.lower(models.Component.name).in_(clean_names.keys()))
+            .all()
+        )
+
+    # Build local dictionaries mapping normalized lower-case names to DB objects
+    cat_dict = {cat.name.lower(): cat for cat in existing_categories}
+    comp_dict = {comp.name.lower(): comp for comp in existing_components}
+
     created_category = False
     for item in items:
         category_id = None
         if item.category_name:
-            category = (
-                db.query(models.Category)
-                .filter(models.Category.name.ilike(item.category_name))
-                .first()
-            )
-            if not category:
+            item_cat_lower = item.category_name.lower()
+            if item_cat_lower in cat_dict:
+                category_id = cat_dict[item_cat_lower].id
+            else:
                 category = models.Category(name=item.category_name)
                 db.add(category)
                 db.flush()
+                cat_dict[item_cat_lower] = category
+                category_id = category.id
                 created_category = True
-            category_id = category.id
 
-        existing_component = (
-            db.query(models.Component)
-            .filter(models.Component.name.ilike(item.clean_name))
-            .first()
-        )
-
-        if existing_component:
+        item_comp_lower = item.clean_name.lower()
+        if item_comp_lower in comp_dict:
+            existing_component = comp_dict[item_comp_lower]
             existing_component.quantity += item.quantity
             if category_id:
                 existing_component.category_id = category_id
@@ -118,6 +145,7 @@ async def approve_invoice(
                 name=item.clean_name, quantity=item.quantity, category_id=category_id
             )
             db.add(new_component)
+            comp_dict[item_comp_lower] = new_component
 
         item.is_processed = True
 

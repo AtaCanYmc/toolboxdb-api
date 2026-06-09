@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
+import groq
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from src import models, schemas
 from src.db import get_db
@@ -61,12 +63,23 @@ async def get_ai_project_suggestions(
         )
         return ai_suggestions
 
-    except Exception:
+    except (groq.APIError, ValidationError, RuntimeError) as ai_err:
         corr_id = get_correlation_id()
-        logger.error(
-            "Yapay zeka proje fikirleri üretilirken hata oluştu",
+        logger.warning(
+            f"Yapay zeka katmanı hatası (Fail-Open): {str(ai_err)}",
             extra={"correlation_id": corr_id},
             exc_info=True,
         )
         # Fail-Open Resilience Layer: Hata fırlatmak yerine boş bir yanıt dönüyoruz
         return schemas.ProjectSuggestionResponse(ideas=[])
+    except Exception:
+        corr_id = get_correlation_id()
+        logger.error(
+            "Sistem kritik hatası (Proje fikirleri üretilirken)",
+            extra={"correlation_id": corr_id},
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Sunucu tarafında kritik bir hata oluştu.",
+        )

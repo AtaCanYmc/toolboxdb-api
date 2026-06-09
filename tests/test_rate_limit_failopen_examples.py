@@ -8,7 +8,7 @@ Note: These are example test cases. Adapt them to your testing framework.
 """
 
 import pytest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from src.middleware.rate_limit import RateLimitMiddleware
@@ -29,7 +29,11 @@ async def test_rate_limit_enforces_when_redis_available():
     app = FastAPI()
 
     # Mock Redis client
-    mock_redis = AsyncMock()
+    mock_redis = MagicMock()
+    pipe_mock = AsyncMock()
+    ctx = MagicMock()
+    ctx.__aenter__.return_value = pipe_mock
+    mock_redis.pipeline.return_value = ctx
     app.state.redis = mock_redis
 
     # Add middleware
@@ -40,8 +44,7 @@ async def test_rate_limit_enforces_when_redis_available():
         return {"status": "ok"}
 
     # Simulate: counter is at 60 (limit is 60)
-    mock_redis.incr = AsyncMock(return_value=60)
-    mock_redis.expire = AsyncMock()
+    pipe_mock.execute.return_value = [True, 60]
 
     client = TestClient(app)
 
@@ -52,7 +55,7 @@ async def test_rate_limit_enforces_when_redis_available():
     assert response.headers["X-RateLimit-Limit"] == "60"
 
     # Request #61 should be limited (counter > 60)
-    mock_redis.incr = AsyncMock(return_value=61)
+    pipe_mock.execute.return_value = [True, 61]
     response = client.get("/api/v1/test")
     assert response.status_code == 429
     assert response.json()["error"] == "Too Many Requests"
@@ -108,8 +111,12 @@ async def test_rate_limit_allows_all_on_redis_connection_error():
     app = FastAPI()
 
     # Mock Redis that raises ConnectionError
-    mock_redis = AsyncMock()
-    mock_redis.incr = AsyncMock(side_effect=Exception("Connection refused"))
+    mock_redis = MagicMock()
+    pipe_mock = AsyncMock()
+    pipe_mock.execute.side_effect = Exception("Connection refused")
+    ctx = MagicMock()
+    ctx.__aenter__.return_value = pipe_mock
+    mock_redis.pipeline.return_value = ctx
     app.state.redis = mock_redis
 
     app.add_middleware(RateLimitMiddleware)
@@ -143,8 +150,12 @@ async def test_rate_limit_allows_all_on_redis_timeout():
     app = FastAPI()
 
     # Mock Redis that times out
-    mock_redis = AsyncMock()
-    mock_redis.incr = AsyncMock(side_effect=asyncio.TimeoutError())
+    mock_redis = MagicMock()
+    pipe_mock = AsyncMock()
+    pipe_mock.execute.side_effect = asyncio.TimeoutError()
+    ctx = MagicMock()
+    ctx.__aenter__.return_value = pipe_mock
+    mock_redis.pipeline.return_value = ctx
     app.state.redis = mock_redis
 
     app.add_middleware(RateLimitMiddleware)
@@ -202,8 +213,12 @@ async def test_rate_limit_logs_include_correlation_id():
     THEN: Logs should include the correlation ID
     """
     app = FastAPI()
-    mock_redis = AsyncMock()
-    mock_redis.incr = AsyncMock(side_effect=Exception("Redis error"))
+    mock_redis = MagicMock()
+    pipe_mock = AsyncMock()
+    pipe_mock.execute.side_effect = Exception("Redis error")
+    ctx = MagicMock()
+    ctx.__aenter__.return_value = pipe_mock
+    mock_redis.pipeline.return_value = ctx
     app.state.redis = mock_redis
 
     app.add_middleware(RateLimitMiddleware)
@@ -238,20 +253,22 @@ async def test_rapid_requests_with_degraded_redis():
     app = FastAPI()
 
     # Mock Redis that fails intermittently
-    mock_redis = AsyncMock()
-    mock_redis.incr = AsyncMock(
-        side_effect=[
-            1,
-            2,
-            3,  # First 3 succeed
-            Exception("Network timeout"),  # Then fails
-            Exception("Network timeout"),
-            Exception("Network timeout"),
-            4,
-            5,
-            6,  # Recovers
-        ]
-    )
+    mock_redis = MagicMock()
+    pipe_mock = AsyncMock()
+    pipe_mock.execute.side_effect = [
+        [True, 1],
+        [True, 2],
+        [True, 3],  # First 3 succeed
+        Exception("Network timeout"),  # Then fails
+        Exception("Network timeout"),
+        Exception("Network timeout"),
+        [True, 4],
+        [True, 5],
+        [True, 6],  # Recovers
+    ]
+    ctx = MagicMock()
+    ctx.__aenter__.return_value = pipe_mock
+    mock_redis.pipeline.return_value = ctx
     app.state.redis = mock_redis
 
     app.add_middleware(RateLimitMiddleware)
