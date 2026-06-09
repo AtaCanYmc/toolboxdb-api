@@ -7,7 +7,7 @@ You are an expert Senior Python & FastAPI Developer assisting with the developme
 - **Database ORM:** SQLAlchemy using Async/Sync sessions connecting to a Supabase (PostgreSQL) cluster.
 - **Validation:** Pydantic V2 schemas.
 - **Caching:** Redis (`redis-py`) for high-ROI reference data.
-- **Design Pattern:** Modular Monolith with clear Separation of Concerns. 
+- **Design Pattern:** Modular Monolith with clear Separation of Concerns.
   - Routers (`src/routes/`) handle HTTP layer logic only.
   - Services (`src/services/`) encapsulate business logic and database/AI orchestrations.
 

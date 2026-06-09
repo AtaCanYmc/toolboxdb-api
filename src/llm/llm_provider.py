@@ -6,10 +6,10 @@ from pydantic import BaseModel
 class LLMProvider(ABC):
     @abstractmethod
     def parse_invoice(
-            self,
-            invoice_text: str,
-            response_format: Type[BaseModel],
-            existing_categories: List[str] = None,
+        self,
+        invoice_text: str,
+        response_format: Type[BaseModel],
+        existing_categories: List[str] = None,
     ) -> BaseModel:
         """
         Parse the given invoice text and return structured data in the specified format.
@@ -17,7 +17,8 @@ class LLMProvider(ABC):
         Args:
             invoice_text (str): The raw text extracted from the invoice.
             response_format (Type[BaseModel]): The Pydantic model representing the expected output structure.
-            existing_categories (List[str], optional): A list of existing component categories to match against. Defaults to None.
+            existing_categories (List[str], optional): A list of existing component categories to match
+                against. Defaults to None.
 
         Returns:
             BaseModel: An instance of `response_format` populated with the extracted invoice data.
@@ -26,12 +27,12 @@ class LLMProvider(ABC):
 
     @abstractmethod
     def suggest_projects(
-            self,
-            stock_components: List[str],
-            extra_components: List[str],
-            difficulty_level: str,
-            extra_message: str | None,
-            response_format: Type[BaseModel],
+        self,
+        stock_components: List[str],
+        extra_components: List[str],
+        difficulty_level: str,
+        extra_message: str | None,
+        response_format: Type[BaseModel],
     ) -> BaseModel:
         """
         Brainstorm innovative maker project ideas based on available components and user criteria.

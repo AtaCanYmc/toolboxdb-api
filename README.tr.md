@@ -145,4 +145,3 @@ Uygulama tipik olarak `http://127.0.0.1:8000`'de çalışır. Swagger UI: `http:
 ---
 
 Bu README'yi çift dilli (TR/EN) sürüm veya ek geliştirici yardımcı dosyaları (`.env.example`, `Makefile`, `devcontainer`) ile genişletmemi isterseniz bildirin; şu an kök dizine tek dilli Türkçe sürümü ekledim.
-

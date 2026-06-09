@@ -285,7 +285,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             - remaining: number of requests left
             - reset_at: Unix timestamp when the limit resets
             - retry_after: seconds to wait before retrying
-            
+
             None if Redis is unavailable or any operation fails (fail-open).
         """
         redis_client = getattr(request.app.state, "redis", None)

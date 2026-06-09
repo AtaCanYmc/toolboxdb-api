@@ -98,7 +98,7 @@ Each entry is a tuple: `(max_requests, window_size_seconds)`
 
 1. **Client Identification**: Extract client IP from request
    - Priority: `X-Forwarded-For` header → Request client IP → "unknown"
-   
+
 2. **Key Construction**: Create unique Redis key per route/client/minute
    - Format: `rate_limit:{path}:{client_id}:{window_start}`
    - Example: `rate_limit:/api/v1/invoices/upload:192.168.1.100:1717594860`
@@ -106,7 +106,7 @@ Each entry is a tuple: `(max_requests, window_size_seconds)`
 3. **Atomic Increment**: Use Redis `INCR` command
    - If count > max_requests: limit exceeded
    - If count == 1: set expiry to window_size seconds
-   
+
 4. **Response**:
    - If exceeded: Return `429 Too Many Requests` with retry info
    - If allowed: Continue to handler, attach rate-limit headers
@@ -375,4 +375,3 @@ Potential improvements for future versions:
 **Framework**: FastAPI + Uvicorn
 **Database**: PostgreSQL (via Supabase)
 **Cache**: Redis
-

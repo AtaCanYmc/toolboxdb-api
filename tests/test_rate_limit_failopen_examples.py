@@ -8,9 +8,8 @@ Note: These are example test cases. Adapt them to your testing framework.
 """
 
 import pytest
-from unittest.mock import AsyncMock, Mock, patch
-from fastapi import FastAPI, Request
-from starlette.responses import Response
+from unittest.mock import AsyncMock
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from src.middleware.rate_limit import RateLimitMiddleware
 
@@ -18,6 +17,7 @@ from src.middleware.rate_limit import RateLimitMiddleware
 # ============================================================================
 # Test Case 1: Redis Available - Rate Limiting Enforces Normally
 # ============================================================================
+
 
 @pytest.mark.asyncio
 async def test_rate_limit_enforces_when_redis_available():
@@ -64,6 +64,7 @@ async def test_rate_limit_enforces_when_redis_available():
 # Test Case 2: Redis Unavailable - Requests Pass Through
 # ============================================================================
 
+
 @pytest.mark.asyncio
 async def test_rate_limit_allows_all_when_redis_unavailable():
     """
@@ -96,6 +97,7 @@ async def test_rate_limit_allows_all_when_redis_unavailable():
 # Test Case 3: Redis Connection Error - Fail-Open Behavior
 # ============================================================================
 
+
 @pytest.mark.asyncio
 async def test_rate_limit_allows_all_on_redis_connection_error():
     """
@@ -127,6 +129,7 @@ async def test_rate_limit_allows_all_on_redis_connection_error():
 # ============================================================================
 # Test Case 4: Redis Timeout - Fail-Open Behavior
 # ============================================================================
+
 
 @pytest.mark.asyncio
 async def test_rate_limit_allows_all_on_redis_timeout():
@@ -161,6 +164,7 @@ async def test_rate_limit_allows_all_on_redis_timeout():
 # Test Case 5: Health Check Endpoint Skipped
 # ============================================================================
 
+
 @pytest.mark.asyncio
 async def test_rate_limit_skips_health_check():
     """
@@ -189,6 +193,7 @@ async def test_rate_limit_skips_health_check():
 # Test Case 6: Correlation ID Included in Logs
 # ============================================================================
 
+
 @pytest.mark.asyncio
 async def test_rate_limit_logs_include_correlation_id():
     """
@@ -211,8 +216,7 @@ async def test_rate_limit_logs_include_correlation_id():
 
     # Request with correlation ID
     response = client.get(
-        "/api/v1/test",
-        headers={"X-Correlation-ID": "test-corr-id-12345"}
+        "/api/v1/test", headers={"X-Correlation-ID": "test-corr-id-12345"}
     )
 
     assert response.status_code == 200
@@ -222,6 +226,7 @@ async def test_rate_limit_logs_include_correlation_id():
 # ============================================================================
 # Integration Test: Scenario with Rapid Requests
 # ============================================================================
+
 
 @pytest.mark.asyncio
 async def test_rapid_requests_with_degraded_redis():
@@ -236,11 +241,15 @@ async def test_rapid_requests_with_degraded_redis():
     mock_redis = AsyncMock()
     mock_redis.incr = AsyncMock(
         side_effect=[
-            1, 2, 3,  # First 3 succeed
+            1,
+            2,
+            3,  # First 3 succeed
             Exception("Network timeout"),  # Then fails
             Exception("Network timeout"),
             Exception("Network timeout"),
-            4, 5, 6,  # Recovers
+            4,
+            5,
+            6,  # Recovers
         ]
     )
     app.state.redis = mock_redis
@@ -258,12 +267,13 @@ async def test_rapid_requests_with_degraded_redis():
     for i in range(9):
         response = client.get("/api/v1/test")
         responses.append(response.status_code)
-        print(f"Request {i+1}: {response.status_code}")
+        print(f"Request {i + 1}: {response.status_code}")
 
     # Assert: No 429 responses (all succeeded despite Redis failures)
-    assert all(status == 200 for status in responses), \
-        f"Expected all 200, got: {responses}"
-    print(f"✅ All 9 requests succeeded despite Redis failures")
+    assert all(
+        status == 200 for status in responses
+    ), f"Expected all 200, got: {responses}"
+    print("✅ All 9 requests succeeded despite Redis failures")
 
 
 # ============================================================================
@@ -285,4 +295,3 @@ Run with logging:
 Run with coverage:
     pytest tests/test_rate_limit.py --cov=src.middleware.rate_limit
 """
-

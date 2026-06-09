@@ -473,4 +473,3 @@ pytest tests/test_rate_limit.py -v --redis-live
 **Last Updated**: June 5, 2026
 **Version**: 1.0.0
 **Framework**: FastAPI + Uvicorn + Redis
-

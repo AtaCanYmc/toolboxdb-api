@@ -26,4 +26,3 @@ test: install
 
 clean:
 	rm -rf $(VENV) __pycache__
-

@@ -31,7 +31,9 @@ async def upload_and_process_invoice(
     try:
         existing_categories = db.query(models.Category).all()
         category_names = [category.name for category in existing_categories]
-        ai_data = llm.parse_invoice(full_text, schemas.AIExtractedInvoice, existing_categories=category_names)
+        ai_data = llm.parse_invoice(
+            full_text, schemas.AIExtractedInvoice, existing_categories=category_names
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

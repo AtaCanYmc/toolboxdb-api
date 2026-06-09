@@ -166,10 +166,10 @@ async function uploadInvoice(file) {
     if (response.status === 429) {
       const data = await response.json();
       const retryAfter = response.headers.get('Retry-After');
-      
+
       // Show user-friendly message
       showError(`Too many requests. Please wait ${retryAfter} seconds.`);
-      
+
       // Exponential backoff retry
       setTimeout(() => uploadInvoice(file), retryAfter * 1000);
       return;
@@ -202,28 +202,28 @@ from datetime import datetime
 
 def upload_invoice(file_path, base_url="http://localhost:8000"):
     """Upload invoice with automatic rate-limit handling."""
-    
+
     with open(file_path, 'rb') as f:
         files = {'file': f}
         headers = {'X-Correlation-ID': f'upload-{int(time.time())}'}
-        
+
         response = requests.post(
             f"{base_url}/api/v1/invoices/upload",
             files=files,
             headers=headers
         )
-    
+
     # Handle rate limit
     if response.status_code == 429:
         retry_after = int(response.headers.get('Retry-After', 60))
         print(f"Rate limited. Waiting {retry_after} seconds...")
         time.sleep(retry_after)
         return upload_invoice(file_path, base_url)  # Retry
-    
+
     # Display rate limit info
     print(f"Limit: {response.headers.get('X-RateLimit-Remaining')}/"\
           f"{response.headers.get('X-RateLimit-Limit')}")
-    
+
     return response.json()
 
 # Usage
@@ -249,14 +249,14 @@ curl -v \
 #!/bin/bash
 for file in invoices/*.pdf; do
   echo "Uploading $file..."
-  
+
   response=$(curl -s -w "\n%{http_code}" \
     -F "file=@$file" \
     -H "X-Correlation-ID: batch-$(date +%s)" \
     http://localhost:8000/api/v1/invoices/upload)
-  
+
   http_code=$(echo "$response" | tail -n1)
-  
+
   if [ "$http_code" = "429" ]; then
     echo "Rate limited. Waiting 60 seconds..."
     sleep 60
@@ -340,23 +340,23 @@ async def upload_and_process_invoice(
 ):
     """
     Upload and process an invoice PDF.
-    
+
     **Rate Limits:**
     - Standard limit: 5 requests per minute
     - Heavy LLM processing, may take 10-30 seconds per file
-    
+
     **Response Headers:**
     - `X-RateLimit-Limit`: Maximum requests allowed per minute
     - `X-RateLimit-Remaining`: Requests remaining in current window
     - `X-RateLimit-Reset`: Unix timestamp when limit resets
-    
+
     **Example:**
     ```
     curl -X POST http://localhost:8000/api/v1/invoices/upload \\
       -F "file=@invoice.pdf" \\
       -H "X-Correlation-ID: req-001"
     ```
-    
+
     **Errors:**
     - `429 Too Many Requests`: Rate limit exceeded, wait and retry
     - `500 Internal Server Error`: AI parsing failed
@@ -390,4 +390,3 @@ For more details, see:
 **Version**: 1.0.0
 **Date**: June 5, 2026
 **Status**: Production Ready ✓
-

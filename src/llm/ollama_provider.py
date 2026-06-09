@@ -10,10 +10,10 @@ class OllamaProvider(LLMProvider):
         self.model = model
 
     def parse_invoice(
-            self,
-            invoice_text: str,
-            response_format: Type[BaseModel],
-            existing_categories: List[str] = None
+        self,
+        invoice_text: str,
+        response_format: Type[BaseModel],
+        existing_categories: List[str] = None,
     ) -> BaseModel:
         json_schema = response_format.model_json_schema()
 
@@ -37,12 +37,12 @@ class OllamaProvider(LLMProvider):
         return response_format.model_validate_json(response["message"]["content"])
 
     def suggest_projects(
-            self,
-            stock_components: List[str],
-            extra_components: List[str],
-            difficulty_level: str,
-            extra_message: str | None,
-            response_format: Type[BaseModel]
+        self,
+        stock_components: List[str],
+        extra_components: List[str],
+        difficulty_level: str,
+        extra_message: str | None,
+        response_format: Type[BaseModel],
     ) -> BaseModel:
         """
         Brainstorm innovative maker project ideas based on available components and user criteria.
@@ -62,8 +62,8 @@ class OllamaProvider(LLMProvider):
                 "stock_components": stock_components,
                 "extra_components": extra_components,
                 "difficulty_level": difficulty_level,
-                "extra_message": extra_message
-            }
+                "extra_message": extra_message,
+            },
         )
 
         user_content = f"Generate innovative project suggestions for difficulty level: {difficulty_level}."
@@ -72,7 +72,7 @@ class OllamaProvider(LLMProvider):
             model=self.model,
             messages=[  # type: ignore
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content}
+                {"role": "user", "content": user_content},
             ],
             format=json_schema,
         )

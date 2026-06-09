@@ -13,16 +13,17 @@ logger = logging.getLogger("api_tracker")
 
 # models: "https://console.groq.com/docs/models"
 
+
 class GroqProvider(LLMProvider):
     def __init__(self, api_key: str, model: str = "llama-3.3-70b-versatile"):
         self.client = instructor.from_groq(groq.Groq(api_key=api_key))
         self.model = model
 
     def parse_invoice(
-            self,
-            invoice_text: str,
-            response_format: Type[BaseModel],
-            existing_categories: List[str] = None
+        self,
+        invoice_text: str,
+        response_format: Type[BaseModel],
+        existing_categories: List[str] = None,
     ) -> BaseModel:
         if existing_categories is None:
             existing_categories = []
@@ -35,9 +36,9 @@ class GroqProvider(LLMProvider):
         corr_id = get_correlation_id()
         logger.info(
             f"Sending parse_invoice request to Groq using model: {self.model}",
-            extra={"correlation_id": corr_id}
+            extra={"correlation_id": corr_id},
         )
-        
+
         start_time = time.time()
         try:
             result = self.client.chat.completions.create(  # type: ignore
@@ -51,7 +52,7 @@ class GroqProvider(LLMProvider):
             process_time = round((time.time() - start_time) * 1000, 2)
             logger.info(
                 f"Groq parse_invoice request completed in {process_time}ms",
-                extra={"correlation_id": corr_id}
+                extra={"correlation_id": corr_id},
             )
             return result
         except Exception as e:
@@ -59,17 +60,17 @@ class GroqProvider(LLMProvider):
             logger.error(
                 f"Groq parse_invoice request failed after {process_time}ms: {str(e)}",
                 extra={"correlation_id": corr_id},
-                exc_info=True
+                exc_info=True,
             )
             raise e
 
     def suggest_projects(
-            self,
-            stock_components: List[str],
-            extra_components: List[str],
-            difficulty_level: str,
-            extra_message: str | None,
-            response_format: Type[BaseModel]
+        self,
+        stock_components: List[str],
+        extra_components: List[str],
+        difficulty_level: str,
+        extra_message: str | None,
+        response_format: Type[BaseModel],
     ) -> BaseModel:
         """
         Brainstorm innovative maker project ideas based on available components and user criteria.
@@ -87,8 +88,8 @@ class GroqProvider(LLMProvider):
                 "stock_components": stock_components,
                 "extra_components": extra_components,
                 "difficulty_level": difficulty_level,
-                "extra_message": extra_message
-            }
+                "extra_message": extra_message,
+            },
         )
 
         user_content = f"Generate innovative project suggestions for difficulty level: {difficulty_level}."
@@ -96,7 +97,7 @@ class GroqProvider(LLMProvider):
         corr_id = get_correlation_id()
         logger.info(
             f"Sending suggest_projects request to Groq using model: {self.model}",
-            extra={"correlation_id": corr_id}
+            extra={"correlation_id": corr_id},
         )
 
         start_time = time.time()
@@ -106,13 +107,13 @@ class GroqProvider(LLMProvider):
                 response_model=response_format,
                 messages=[  # type: ignore
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_content}
-                ]
+                    {"role": "user", "content": user_content},
+                ],
             )
             process_time = round((time.time() - start_time) * 1000, 2)
             logger.info(
                 f"Groq suggest_projects request completed in {process_time}ms",
-                extra={"correlation_id": corr_id}
+                extra={"correlation_id": corr_id},
             )
             return result
         except Exception as e:
@@ -120,6 +121,6 @@ class GroqProvider(LLMProvider):
             logger.error(
                 f"Groq suggest_projects request failed after {process_time}ms: {str(e)}",
                 extra={"correlation_id": corr_id},
-                exc_info=True
+                exc_info=True,
             )
             raise e
