@@ -138,6 +138,19 @@ The application typically runs at `http://127.0.0.1:8000`. Swagger UI: `http://1
   - `@router.get("/components/{component_id:uuid}")`
   - `@router.get("/categories/{category_id:int}")`
 
+## Database Migrations (Alembic)
+The project uses Alembic to handle database migrations dynamically. The system connects safely to the remote database using environment variables instead of hardcoded credentials in `alembic.ini`.
+
+**Important Commands:**
+- **Create a new migration:** Run this command whenever you change a schema in `src/models.py`.
+  ```bash
+  alembic revision --autogenerate -m "Description of the change"
+  ```
+- **Apply migrations:** Apply pending changes to the database.
+  ```bash
+  alembic upgrade head
+  ```
+
 ## AI Project Suggestions
 - The system includes a new `POST /api/v1/suggestions/project-ideas` endpoint that uses LLMs (like Groq) to suggest innovative maker projects based on your current stock.
 - The `POST /api/v1/suggestions/give-detail` endpoint generates a detailed wiring guide and C++/Arduino code sketch for a specific project suggestion.

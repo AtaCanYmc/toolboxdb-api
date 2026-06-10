@@ -4,8 +4,6 @@ import uvicorn
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from src import models
-from src.db import db_connector
 from src.middleware import add_middleware
 from src.routes import add_routes
 from src.cache import init_redis, close_redis
@@ -42,13 +40,7 @@ async def lifespan(app: FastAPI):
      - Close Redis connection
     """
     # ==================== STARTUP ====================
-    logger.info("Connecting to database and creating tables if they don't exist...")
-    try:
-        models.Base.metadata.create_all(bind=db_connector.engine)
-        logger.info("Database tables initialized successfully!")
-    except Exception as e:
-        logger.error(f"Database initialization failed: {str(e)}")
-        raise e
+    logger.info("Database connection established. Migrations are managed by Alembic.")
 
     # Initialize Redis client
     try:
