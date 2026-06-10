@@ -25,9 +25,9 @@ async def get_ai_project_suggestions(
     llm: LLMProvider = Depends(get_llm_provider),
 ):
     """
-    Veritabanındaki aktif stok komponentlerini otomatik analiz eder.
-    Kullanıcının ilettiği ek parçalar, zorluk seviyesi ve özel temalarla
-    harmanlayarak AI tabanlı structured proje reçeteleri üretir.
+    Automatically analyzes active stock components in the database.
+    Blends them with extra parts, difficulty level, and special themes
+    provided by the user to generate AI-based structured project recipes.
     """
     try:
         corr_id = get_correlation_id()
@@ -35,12 +35,12 @@ async def get_ai_project_suggestions(
             "Fetching active components for project suggestions",
             extra={"correlation_id": corr_id},
         )
-        # 1. Veritabanında miktarı 0'dan büyük olan aktif komponent kartlarını çekiyoruz
+        # 1. Fetch active component cards with quantity greater than 0 from the database
         active_components = (
             db.query(models.Component).filter(models.Component.quantity > 0).all()
         )
 
-        # 2. LLM katmanının (Gevşek Bağlılık/Loose Coupling) bizden beklediği saf string listesini hazırlıyoruz
+        # 2. Prepare the pure string list expected by the LLM layer (Loose Coupling)
         stock_component_names = [c.name for c in active_components]
 
         logger.info(
@@ -48,7 +48,7 @@ async def get_ai_project_suggestions(
             extra={"correlation_id": corr_id},
         )
 
-        # 3. ABC Kontratımıza yeni eklediğimiz soyut metodu tetikliyoruz
+        # 3. Trigger the newly added abstract method in our ABC Contract
         ai_suggestions = llm.suggest_projects(
             stock_components=stock_component_names,
             extra_components=payload.extra_components,
@@ -66,22 +66,22 @@ async def get_ai_project_suggestions(
     except (groq.APIError, ValidationError, RuntimeError) as ai_err:
         corr_id = get_correlation_id()
         logger.warning(
-            f"Yapay zeka katmanı hatası (Fail-Open): {str(ai_err)}",
+            f"AI layer error (Fail-Open): {str(ai_err)}",
             extra={"correlation_id": corr_id},
             exc_info=True,
         )
-        # Fail-Open Resilience Layer: Hata fırlatmak yerine boş bir yanıt dönüyoruz
+        # Fail-Open Resilience Layer: Return an empty response instead of throwing an error
         return schemas.ProjectSuggestionResponse(ideas=[])
     except Exception:
         corr_id = get_correlation_id()
         logger.error(
-            "Sistem kritik hatası (Proje fikirleri üretilirken)",
+            "Critical system error (While generating project ideas)",
             extra={"correlation_id": corr_id},
             exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Sunucu tarafında kritik bir hata oluştu.",
+            detail="A critical error occurred on the server side.",
         )
 
 
@@ -95,7 +95,7 @@ async def get_project_details(
     llm: LLMProvider = Depends(get_llm_provider),
 ):
     """
-    Belirli bir projenin devre şeması ve örnek kod taslağını LLM'den çeker.
+    Fetches the circuit diagram and sample code sketch of a specific project from the LLM.
     """
     try:
         corr_id = get_correlation_id()
@@ -121,25 +121,25 @@ async def get_project_details(
     except (groq.APIError, ValidationError, RuntimeError) as ai_err:
         corr_id = get_correlation_id()
         logger.warning(
-            f"Yapay zeka katmanı hatası (Fail-Open): {str(ai_err)}",
+            f"AI layer error (Fail-Open): {str(ai_err)}",
             extra={"correlation_id": corr_id},
             exc_info=True,
         )
-        # Fail-Open: Boş içerik dönüyoruz ki sistem çökmesin
+        # Fail-Open: Return empty content so the system doesn't crash
         return schemas.AIProjectSuggestion(
             project_name=payload.project_title,
             difficulty=payload.difficulty,
-            wiring_guide="Şu anda yapay zeka servisine ulaşılamıyor.",
-            code_sketch="// Geçici olarak kullanılamıyor.",
+            wiring_guide="The AI service is currently unavailable.",
+            code_sketch="// Temporarily unavailable.",
         )
     except Exception:
         corr_id = get_correlation_id()
         logger.error(
-            "Sistem kritik hatası (Proje detayı üretilirken)",
+            "Critical system error (While generating project details)",
             extra={"correlation_id": corr_id},
             exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Sunucu tarafında kritik bir hata oluştu.",
+            detail="A critical error occurred on the server side.",
         )

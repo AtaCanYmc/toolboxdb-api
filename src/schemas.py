@@ -59,7 +59,7 @@ class InvoiceItemBase(BaseModel):
     raw_name: str
     clean_name: Optional[str] = None
     quantity: int
-    category: Optional[str] = Field(None, description="AI recomendation category")
+    category: Optional[str] = Field(None, description="AI recommendation category")
 
     @model_validator(mode="after")
     def fix_package_quantity(self) -> "InvoiceItemBase":
@@ -107,18 +107,18 @@ class InvoiceResponse(InvoiceBase):
 
 
 class AIExtractedItem(BaseModel):
-    raw_name: str = Field(description="Faturada yazan ham ürün adı")
+    raw_name: str = Field(description="Raw product name on the invoice")
     clean_name: str = Field(
-        description="Ürünün temizlenmiş net modeli/adı. "
-        "Örn: 'DHT11' veya '10K Direnç'"
+        description="Cleaned exact model/name of the product. "
+        "E.g.: 'DHT11' or '10K Resistor'"
     )
-    quantity: int = Field(description="Satın alınan adet")
+    quantity: int = Field(description="Purchased quantity")
     category: str = Field(
         description=(
-            "Komponentin uyması gereken kategori: "
-            "'Mikrodenetleyici', 'Sensör', 'Aktatör', "
-            "'Görüntü/Ekran', 'Pasif Bileşen', 'Güç/Batarya', "
-            "'Prototipleme/Kablo'"
+            "Category the component belongs to: "
+            "'Microcontroller', 'Sensor', 'Actuator', "
+            "'Display/Screen', 'Passive Component', 'Power/Battery', "
+            "'Prototyping/Cable'"
         )
     )
 
@@ -126,15 +126,14 @@ class AIExtractedItem(BaseModel):
 class AIExtractedInvoice(BaseModel):
     store_name: str = Field(
         description=(
-            "Faturanın ait olduğu mağaza: "
-            "'Direnç.net', 'Robotistan', 'Robolink' veya 'Diğer'"
+            "Store of the invoice: " "'Direnç.net', 'Robotistan', 'Robolink' or 'Other'"
         )
     )
     invoice_date: Optional[str] = Field(
-        None, description="Fatura tarihi (YYYY-MM-DD formatında, bulunamazsa null)"
+        None, description="Invoice date (YYYY-MM-DD format, null if not found)"
     )
     items: List[AIExtractedItem] = Field(
-        description="Faturadan çıkarılan tüm ürünlerin listesi"
+        description="List of all products extracted from the invoice"
     )
 
 
@@ -152,16 +151,15 @@ class EmbeddingChunk(BaseModel):
 
 
 class AIProjectSuggestion(BaseModel):
-    project_name: str = Field(description="Önerilen projenin adı")
-    difficulty: str = Field(description="Zorluk seviyesi: Başlangıç, Orta, İleri")
+    project_name: str = Field(description="Name of the suggested project")
+    difficulty: str = Field(description="Difficulty level: Beginner, Medium, Advanced")
     wiring_guide: str = Field(
         description=(
-            "Hangi pinin nereye bağlanacağını anlatan "
-            "net devre şeması taslağı açıklaması"
+            "Clear circuit diagram draft explaining " "which pin connects where"
         )
     )
     code_sketch: str = Field(
-        description=("Arduino/C++ formatında yazılmış, " "derlenmeye hazır kod taslağı")
+        description=("Ready-to-compile code sketch " "written in Arduino/C++ format")
     )
 
 
@@ -173,56 +171,56 @@ class AIProjectSuggestion(BaseModel):
 class ProjectSuggestionRequest(BaseModel):
     extra_components: List[str] = Field(
         default=[],
-        description="Stokta olmayıp kullanıcının manuel eklemek istediği ekstra parçalar",
+        description="Extra parts the user wants to add manually that are not in stock",
     )
     difficulty_level: str = Field(
         default="Medium",
-        description="Proje zorluk seviyesi: Beginner, Medium, Advanced",
+        description="Project difficulty level: Beginner, Medium, Advanced",
     )
     extra_message: str | None = Field(
         default=None,
         description=(
-            "Kullanıcının yapay zekaya iletmek istediği özel not veya tema"
-            " (Örn: Sadece akıllı ev olsun)"
+            "Special note or theme the user wants to convey to the AI"
+            " (E.g.: Only smart home projects)"
         ),
     )
 
 
 class ProjectDetailRequest(BaseModel):
-    project_title: str = Field(description="Detaylandırılacak projenin adı")
-    project_description: str = Field(description="Projenin kısa özeti")
-    difficulty: str = Field(description="Projenin zorluk seviyesi")
+    project_title: str = Field(description="Name of the project to detail")
+    project_description: str = Field(description="Short summary of the project")
+    difficulty: str = Field(description="Difficulty level of the project")
     components: List[str] = Field(
-        description="Projeye dahil edilecek parçaların isimleri"
+        description="Names of the components to be included in the project"
     )
 
 
 class NeededComponent(BaseModel):
-    name: str = Field(description="Komponentin temiz adı")
+    name: str = Field(description="Clean name of the component")
     status: str = Field(
-        description="Elinde 'Mevcut' mu yoksa dışarıdan 'Satın Alınmalı' mı?"
+        description="Is it 'Available' in stock or 'To Buy' from outside?"
     )
 
 
 class ProjectIdea(BaseModel):
-    title: str = Field(description="Projenin havalı adı")
+    title: str = Field(description="Cool name of the project")
     description: str = Field(
         description=(
-            "Projenin 5-10 cümlelik kısa özeti ve ne işe yaradığı. "
-            "Parçaların tam olarak ne işe yaradığı açıkça söylenmeli"
+            "Short 5-10 sentence summary of the project and its purpose. "
+            "The exact purpose of the parts should be clearly stated"
         )
     )
-    difficulty: str = Field(description="Belirlenen zorluk seviyesi")
+    difficulty: str = Field(description="Determined difficulty level")
     components_breakdown: List[NeededComponent] = Field(
-        description="Proje için gereken tüm parçalar ve stok durumları"
+        description="All required parts for the project and their stock statuses"
     )
-    estimated_build_time_hours: int = Field(description="Tahmini yapım süresi (saat)")
+    estimated_build_time_hours: int = Field(description="Estimated build time (hours)")
     step_by_step_summary: List[str] = Field(
-        description="Projenin yapım aşamalarının kısa ama açıklayıcı özeti"
+        description="Short but explanatory summary of the project's build steps"
     )
 
 
 class ProjectSuggestionResponse(BaseModel):
     ideas: List[ProjectIdea] = Field(
-        description="Üretilen yaratıcı proje fikirleri listesi"
+        description="List of generated creative project ideas"
     )

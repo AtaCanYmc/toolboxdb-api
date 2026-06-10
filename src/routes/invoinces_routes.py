@@ -17,7 +17,7 @@ invoinces_router = APIRouter(prefix="/api/v1/invoices", tags=["Invoices"])
 
 
 # =====================================================================
-# 1. FATURA ANA İŞLEMLERİ (UPLOAD & APPROVE)
+# 1. MAIN INVOICE OPERATIONS (UPLOAD & APPROVE)
 # =====================================================================
 
 
@@ -38,7 +38,7 @@ async def upload_and_process_invoice(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"AI Analiz hatası ({file.filename}): {str(e)}",
+            detail=f"AI Parsing error ({file.filename}): {str(e)}",
         )
 
     parsed_date = None
@@ -85,7 +85,7 @@ async def approve_invoice(
     if not items:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Onaylanacak işlenmemiş kalem bulunamadı.",
+            detail="No unprocessed items found to approve.",
         )
 
     # Extract distinct target names
@@ -158,18 +158,18 @@ async def approve_invoice(
             pass
 
     return {
-        "message": f"Faturadaki {len(items)} kalem başarıyla işlendi ve envanter stoğu güncellendi."
+        "message": f"Successfully processed {len(items)} items from the invoice and updated inventory stock."
     }
 
 
 # =====================================================================
-# 2. FATURA SORGULAMA VE YÖNETİM ENDPOINT'LERİ (YENİ)
+# 2. INVOICE QUERY AND MANAGEMENT ENDPOINTS (NEW)
 # =====================================================================
 
 
 @invoinces_router.get("/", response_model=List[schemas.InvoiceResponse])
 async def list_invoices(db: Session = Depends(get_db), skip: int = 0, limit: int = 50):
-    """Sistemdeki tüm faturaları içindeki kalemlerle birlikte listeler."""
+    """List all invoices in the system along with their items."""
     return (
         db.query(models.Invoice)
         .order_by(models.Invoice.created_at.desc())
@@ -181,22 +181,22 @@ async def list_invoices(db: Session = Depends(get_db), skip: int = 0, limit: int
 
 @invoinces_router.get("/{invoice_id}", response_model=schemas.InvoiceResponse)
 async def get_invoice_detail(invoice_id: UUID, db: Session = Depends(get_db)):
-    """ID bazlı tek bir faturanın tüm detaylarını ve kalemlerini getirir."""
+    """Fetch all details and items of a specific invoice by ID."""
     invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
     if not invoice:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Fatura bulunamadı."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found."
         )
     return invoice
 
 
 @invoinces_router.delete("/{invoice_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
-    """Faturayı ve faturaya ait onay havuzundaki işlenmemiş tüm kalemleri siler."""
+    """Delete the invoice and all its unprocessed items in the approval pool."""
     invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
     if not invoice:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Fatura bulunamadı."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found."
         )
 
     db.delete(invoice)
@@ -205,7 +205,7 @@ async def delete_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
 
 
 # =====================================================================
-# 3. FATURA KALEMLERİ MANUEL MÜDAHALE ENDPOINT'LERİ (YENİ)
+# 3. INVOICE ITEMS MANUAL INTERVENTION ENDPOINTS (NEW)
 # =====================================================================
 
 
@@ -216,24 +216,24 @@ async def update_invoice_item(
     db: Session = Depends(get_db),
 ):
     """
-    Onay havuzundaki bir kalemi manuel düzenler.
-    AI yanlış isim çıkardıysa onaylamadan önce buradan düzeltebilirsin.
+    Manually edit an item in the approval pool.
+    If the AI extracted the wrong name, you can fix it here before approving.
     """
     db_item = (
         db.query(models.InvoiceItem).filter(models.InvoiceItem.id == item_id).first()
     )
     if not db_item:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Fatura kalemi bulunamadı."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Invoice item not found."
         )
 
     if db_item.is_processed:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Stoğa işlenmiş bir kalemi değiştiremezsiniz.",
+            detail="Cannot modify an item that has already been processed into stock.",
         )
 
-    # Gelen taze verileri modele yediriyoruz
+    # Apply fresh incoming data to the model
     update_data = item_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_item, key, value)
@@ -245,19 +245,19 @@ async def update_invoice_item(
 
 @invoinces_router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_invoice_item(item_id: UUID, db: Session = Depends(get_db)):
-    """Faturadaki istemediğin veya hatalı bir kalemi onay havuzundan tamamen uçurur."""
+    """Completely remove an unwanted or incorrect item from the invoice approval pool."""
     db_item = (
         db.query(models.InvoiceItem).filter(models.InvoiceItem.id == item_id).first()
     )
     if not db_item:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Fatura kalemi bulunamadı."
+            status_code=status.HTTP_404_NOT_FOUND, detail="Invoice item not found."
         )
 
     if db_item.is_processed:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Stoğa işlenmiş bir kalemi silemezsiniz.",
+            detail="Cannot delete an item that has already been processed into stock.",
         )
 
     db.delete(db_item)

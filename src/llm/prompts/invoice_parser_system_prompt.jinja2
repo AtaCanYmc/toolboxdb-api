@@ -18,8 +18,8 @@ To prevent loose or null categories, you must strictly try to map each extracted
 1. Every component MUST have a category. Do NOT leave the category field as null or empty string.
 2. Compare the item name with the "AVAILABLE INVENTORY CATEGORIES" list provided above (Case-Insensitive).
 3. If a strong match is found, use that exact category name.
-4. If NO match is found in the list, infer a logical, clean, single-word category name based on standard electronics domain (e.g., "Kondansatör", "Direnç", "Yarı İletken", "Geliştirme Kartı"). Do not write long sentences.
+4. If NO match is found in the list, infer a logical, clean, single-word category name based on standard electronics domain (e.g., "Capacitor", "Resistor", "Semiconductor", "Development Board"). Do not write long sentences.
 
 ### CLEANING COMPONENT NAMES:
 - Remove price tags, vendor package codes, and quantity multipliers from the `clean_name`.
-- *Example raw_name:* "22nF Seramik Kondansatör Paketi - 10 Adet" -> *clean_name:* "22nF Seramik Kondansatör"
+- *Example raw_name:* "22nF Ceramic Capacitor Pack - 10 pcs" -> *clean_name:* "22nF Ceramic Capacitor"

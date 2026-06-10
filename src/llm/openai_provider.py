@@ -92,7 +92,7 @@ class OpenAIProvider(LLMProvider):
             },
         )
 
-        user_content = f"Lütfen '{project_title}' projesi için detaylı devre şeması ve kod taslağını oluştur."
+        user_content = f"Please create a detailed circuit diagram and code sketch for the '{project_title}' project."
 
         completion = self.client.beta.chat.completions.parse(
             model=self.model,
