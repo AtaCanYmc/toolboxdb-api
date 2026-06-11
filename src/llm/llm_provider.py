@@ -10,6 +10,7 @@ class LLMProvider(ABC):
         invoice_text: str,
         response_format: Type[BaseModel],
         existing_categories: List[str] = None,
+        target_language: str = "English",
     ) -> BaseModel:
         """
         Parse the given invoice text and return structured data in the specified format.
@@ -33,6 +34,7 @@ class LLMProvider(ABC):
         difficulty_level: str,
         extra_message: str | None,
         response_format: Type[BaseModel],
+        target_language: str = "English",
     ) -> BaseModel:
         """
         Brainstorm innovative maker project ideas based on available components and user criteria.
@@ -57,6 +59,7 @@ class LLMProvider(ABC):
         difficulty: str,
         components: List[str],
         response_format: Type[BaseModel],
+        target_language: str = "English",
     ) -> BaseModel:
         """
         Generate detailed wiring guide and code sketch for a specific project.

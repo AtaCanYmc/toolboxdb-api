@@ -63,6 +63,7 @@ async def get_ai_project_suggestions(
             difficulty_level=payload.difficulty_level,
             extra_message=payload.extra_message,
             response_format=schemas.ProjectSuggestionResponse,
+            target_language=payload.target_language,
         )
 
         logger.info(
@@ -119,6 +120,7 @@ async def get_project_details(
             difficulty=payload.difficulty,
             components=payload.components,
             response_format=schemas.AIProjectSuggestion,
+            target_language=payload.target_language,
         )
 
         logger.info(

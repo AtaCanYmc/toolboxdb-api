@@ -1,6 +1,6 @@
 from datetime import datetime
 from uuid import UUID
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from src import models, schemas
@@ -26,6 +26,7 @@ invoinces_router = APIRouter(prefix="/api/v1/invoices", tags=["Invoices"])
 @invoinces_router.post("/upload", response_model=schemas.InvoiceResponse)
 async def upload_and_process_invoice(
     file: UploadFile = File(...),
+    target_language: str = Form("English"),
     db: Session = Depends(get_db),
     llm: LLMProvider = Depends(get_llm_provider),
     current_user: models.User = Depends(RoleChecker(["admin", "user"])),
@@ -36,7 +37,10 @@ async def upload_and_process_invoice(
         existing_categories = db.query(models.Category).all()
         category_names = [category.name for category in existing_categories]
         ai_data = llm.parse_invoice(
-            full_text, schemas.AIExtractedInvoice, existing_categories=category_names
+            full_text,
+            schemas.AIExtractedInvoice,
+            existing_categories=category_names,
+            target_language=target_language,
         )
     except Exception as e:
         raise HTTPException(

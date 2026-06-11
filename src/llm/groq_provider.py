@@ -24,13 +24,17 @@ class GroqProvider(LLMProvider):
         invoice_text: str,
         response_format: Type[BaseModel],
         existing_categories: List[str] = None,
+        target_language: str = "English",
     ) -> BaseModel:
         if existing_categories is None:
             existing_categories = []
 
         system_prompt = render_prompt(
             template_name="invoice_parser_system_prompt.jinja2",
-            context={"existing_categories": existing_categories},
+            context={
+                "existing_categories": existing_categories,
+                "target_language": target_language,
+            },
         )
 
         corr_id = get_correlation_id()
@@ -71,6 +75,7 @@ class GroqProvider(LLMProvider):
         difficulty_level: str,
         extra_message: str | None,
         response_format: Type[BaseModel],
+        target_language: str = "English",
     ) -> BaseModel:
         """
         Brainstorm innovative maker project ideas based on available components and user criteria.
@@ -89,6 +94,7 @@ class GroqProvider(LLMProvider):
                 "extra_components": extra_components,
                 "difficulty_level": difficulty_level,
                 "extra_message": extra_message,
+                "target_language": target_language,
             },
         )
 
@@ -132,6 +138,7 @@ class GroqProvider(LLMProvider):
         difficulty: str,
         components: List[str],
         response_format: Type[BaseModel],
+        target_language: str = "English",
     ) -> BaseModel:
         system_prompt = render_prompt(
             template_name="project_detail_system_prompt.jinja2",
@@ -140,6 +147,7 @@ class GroqProvider(LLMProvider):
                 "project_description": project_description,
                 "difficulty": difficulty,
                 "components": components,
+                "target_language": target_language,
             },
         )
 

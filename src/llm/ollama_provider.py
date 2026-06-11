@@ -14,6 +14,7 @@ class OllamaProvider(LLMProvider):
         invoice_text: str,
         response_format: Type[BaseModel],
         existing_categories: List[str] = None,
+        target_language: str = "English",
     ) -> BaseModel:
         json_schema = response_format.model_json_schema()
 
@@ -22,7 +23,10 @@ class OllamaProvider(LLMProvider):
 
         system_prompt = render_prompt(
             template_name="invoice_parser_system_prompt.jinja2",
-            context={"existing_categories": existing_categories},
+            context={
+                "existing_categories": existing_categories,
+                "target_language": target_language,
+            },
         )
 
         response = ollama.chat(
@@ -43,6 +47,7 @@ class OllamaProvider(LLMProvider):
         difficulty_level: str,
         extra_message: str | None,
         response_format: Type[BaseModel],
+        target_language: str = "English",
     ) -> BaseModel:
         """
         Brainstorm innovative maker project ideas based on available components and user criteria.
@@ -63,6 +68,7 @@ class OllamaProvider(LLMProvider):
                 "extra_components": extra_components,
                 "difficulty_level": difficulty_level,
                 "extra_message": extra_message,
+                "target_language": target_language,
             },
         )
 
@@ -86,6 +92,7 @@ class OllamaProvider(LLMProvider):
         difficulty: str,
         components: List[str],
         response_format: Type[BaseModel],
+        target_language: str = "English",
     ) -> BaseModel:
         json_schema = response_format.model_json_schema()
 
@@ -96,6 +103,7 @@ class OllamaProvider(LLMProvider):
                 "project_description": project_description,
                 "difficulty": difficulty,
                 "components": components,
+                "target_language": target_language,
             },
         )
 
