@@ -6,8 +6,13 @@ import json
 from typing import Optional, Any
 from sqlalchemy.orm import Session
 from typing import List
+from src.routes.auth_deps import get_current_user
 
-category_router = APIRouter(prefix="/api/v1/category", tags=["Category"])
+category_router = APIRouter(
+    prefix="/api/v1/category",
+    tags=["Category"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @category_router.get("/", response_model=List[schemas.CategoryResponse])

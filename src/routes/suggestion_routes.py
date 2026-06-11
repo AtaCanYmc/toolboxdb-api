@@ -12,7 +12,11 @@ from src.routes.auth_deps import get_current_user
 
 logger = logging.getLogger("api_tracker")
 
-suggestion_router = APIRouter(prefix="/api/v1/suggestions", tags=["Project Insights"])
+suggestion_router = APIRouter(
+    prefix="/api/v1/suggestions",
+    tags=["Project Insights"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @suggestion_router.post(

@@ -12,8 +12,13 @@ from typing import List
 from src.pdf import PDFService
 from src.cache import get_redis
 from typing import Optional, Any
+from src.routes.auth_deps import get_current_user
 
-invoinces_router = APIRouter(prefix="/api/v1/invoices", tags=["Invoices"])
+invoinces_router = APIRouter(
+    prefix="/api/v1/invoices",
+    tags=["Invoices"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 # =====================================================================
