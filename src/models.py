@@ -35,6 +35,9 @@ class User(Base):
     components = relationship(
         "Component", back_populates="user", cascade="all, delete-orphan"
     )
+    invoices = relationship(
+        "Invoice", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Category(Base):
@@ -72,6 +75,10 @@ class Component(Base):
 class Invoice(Base):
     __tablename__ = "invoices"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    user = relationship("User", back_populates="invoices")
     store_name = Column(String(100), nullable=False)
     invoice_date = Column(Date, nullable=True)
     total_amount = Column(Numeric(10, 2), nullable=True)

@@ -1,712 +1,712 @@
 {
-  "info": {
-    "name": "ToolboxDB API (RBAC & Full Coverage)",
-    "description": "Comprehensive Postman collection for ToolboxDB covering all endpoints, RBAC examples, and AI integration flows.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://127.0.0.1:8000",
-      "type": "string"
+    "info": {
+        "name": "ToolboxDB API (RBAC & Full Coverage)",
+        "description": "Comprehensive Postman collection for ToolboxDB covering all endpoints, RBAC examples, and AI integration flows.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
-    {
-      "key": "access_token",
-      "value": "",
-      "type": "string"
-    }
-  ],
-  "item": [
-    {
-      "name": "System & Health",
-      "description": "Public system endpoints for health checks.",
-      "item": [
+    "variable": [
         {
-          "name": "Welcome / Root",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                ""
-              ]
-            }
-          }
+            "key": "base_url",
+            "value": "http://127.0.0.1:8000",
+            "type": "string"
         },
         {
-          "name": "Health Check",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/health",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "health"
-              ]
-            }
-          }
+            "key": "access_token",
+            "value": "",
+            "type": "string"
         }
-      ]
-    },
-    {
-      "name": "Authentication",
-      "description": "Public endpoints for registration and token retrieval.",
-      "item": [
+    ],
+    "item": [
         {
-          "name": "1. Register Admin User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/register",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "register"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"admin_user\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"admin\"\n}"
-            }
-          }
-        },
-        {
-          "name": "2. Register Standard User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/register",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "register"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"standart_user\",\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"user\"\n}"
-            }
-          }
-        },
-        {
-          "name": "3. Register Chatter User",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/register",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "register"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"chatter_user\",\n  \"email\": \"chatter@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"chatter\"\n}"
-            }
-          }
-        },
-        {
-          "name": "4. Login (Get Token)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "var jsonData = pm.response.json();",
-                  "if (jsonData.access_token) {",
-                  "    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
-                  "    console.log(\"Token automatically saved to variables.\");",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/x-www-form-urlencoded"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/login",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "login"
-              ]
-            },
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
+            "name": "System & Health",
+            "description": "Public system endpoints for health checks.",
+            "item": [
                 {
-                  "key": "username",
-                  "value": "admin_user",
-                  "type": "text"
+                    "name": "Welcome / Root",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                ""
+                            ]
+                        }
+                    }
                 },
                 {
-                  "key": "password",
-                  "value": "password123",
-                  "type": "text"
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        }
+                    }
                 }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Categories",
-      "description": "Category operations. Read (All), Write (Admin Only).",
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{access_token}}",
-            "type": "string"
-          }
-        ]
-      },
-      "item": [
+            ]
+        },
         {
-          "name": "List Categories (Paginated)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/v1/category/?skip=0&limit=10",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "category",
-                ""
-              ],
-              "query": [
+            "name": "Authentication",
+            "description": "Public endpoints for registration and token retrieval.",
+            "item": [
                 {
-                  "key": "skip",
-                  "value": "0"
+                    "name": "1. Register Admin User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"admin_user\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"admin\"\n}"
+                        }
+                    }
                 },
                 {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Search Categories",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/v1/category/search?search=sensor",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "category",
-                "search"
-              ],
-              "query": [
+                    "name": "2. Register Standard User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"standart_user\",\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"user\"\n}"
+                        }
+                    }
+                },
                 {
-                  "key": "search",
-                  "value": "sensor"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Category (Admin)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/category/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "category",
-                ""
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Microcontrollers\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Update Category (Admin)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/category/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "category",
-                "1"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Advanced Microcontrollers\"\n}"
-            }
-          }
-        },
-        {
-          "name": "Delete Category (Admin)",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{base_url}}/api/v1/category/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "category",
-                "1"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Components",
-      "description": "Component operations. Read (All), Write (Admin Only). Isolated per user_id.",
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{access_token}}",
-            "type": "string"
-          }
-        ]
-      },
-      "item": [
-        {
-          "name": "List Components",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/v1/components/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "components",
-                ""
-              ]
-            }
-          }
-        },
-        {
-          "name": "Search Components",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/v1/components/search?search=ESP32",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "components",
-                "search"
-              ],
-              "query": [
+                    "name": "3. Register Chatter User",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"chatter_user\",\n  \"email\": \"chatter@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"chatter\"\n}"
+                        }
+                    }
+                },
                 {
-                  "key": "search",
-                  "value": "ESP32"
+                    "name": "4. Login (Get Token)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.access_token) {",
+                                    "    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+                                    "    console.log(\"Token automatically saved to variables.\");",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/x-www-form-urlencoded"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "body": {
+                            "mode": "urlencoded",
+                            "urlencoded": [
+                                {
+                                    "key": "username",
+                                    "value": "admin_user",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "password",
+                                    "value": "password123",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
                 }
-              ]
-            }
-          }
+            ]
         },
         {
-          "name": "Create Component (Admin)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/components/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "components",
-                ""
-              ]
+            "name": "Categories",
+            "description": "Category operations. Read (All), Write (Admin Only).",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{access_token}}",
+                        "type": "string"
+                    }
+                ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"ESP32-WROOM-32\",\n  \"quantity\": 15,\n  \"category_id\": 1,\n  \"datasheet_url\": \"https://example.com/datasheet.pdf\",\n  \"technical_specs\": {\n    \"voltage\": \"3.3V\",\n    \"wifi\": \"802.11 b/g/n\"\n  }\n}"
-            }
-          }
-        },
-        {
-          "name": "Update Component (Admin)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/components/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "components",
-                "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"ESP32-WROOM-32 (Updated)\",\n  \"quantity\": 10\n}"
-            }
-          }
-        },
-        {
-          "name": "Delete Component (Admin)",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{base_url}}/api/v1/components/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "components",
-                "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Invoices",
-      "description": "Invoice management. Upload (Admin/User), Approve/Edit/Delete (Admin Only).",
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{access_token}}",
-            "type": "string"
-          }
-        ]
-      },
-      "item": [
-        {
-          "name": "1. Upload PDF Invoice (Admin & User)",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{base_url}}/api/v1/invoices/upload",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "invoices",
-                "upload"
-              ]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
+            "item": [
                 {
-                  "key": "file",
-                  "type": "file",
-                  "src": []
+                    "name": "List Categories (Paginated)",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/category/?skip=0&limit=10",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "category",
+                                ""
+                            ],
+                            "query": [
+                                {
+                                    "key": "skip",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Categories",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/category/search?search=sensor",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "category",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "sensor"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Category (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/category/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "category",
+                                ""
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Microcontrollers\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Update Category (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/category/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "category",
+                                "1"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Advanced Microcontrollers\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Category (Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/category/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "category",
+                                "1"
+                            ]
+                        }
+                    }
                 }
-              ]
-            }
-          }
+            ]
         },
         {
-          "name": "2. List All Invoices",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/v1/invoices/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "invoices",
-                ""
-              ]
-            }
-          }
-        },
-        {
-          "name": "3. Get Invoice Detail",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "invoices",
-                "f1c50e93-2710-449e-b9b5-6804a9af35b8"
-              ]
-            }
-          }
-        },
-        {
-          "name": "4. Fix/Edit Extracted Item (Admin)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/invoices/items/c810d7a6-b519-482a-912a-048b2611a5b8",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "invoices",
-                "items",
-                "c810d7a6-b519-482a-912a-048b2611a5b8"
-              ]
+            "name": "Components",
+            "description": "Component operations. Read (All), Write (Admin Only). Isolated per user_id.",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{access_token}}",
+                        "type": "string"
+                    }
+                ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"clean_name\": \"Corrected Component Name\",\n  \"quantity\": 100,\n  \"category_name\": \"Resistors\"\n}"
-            }
-          }
+            "item": [
+                {
+                    "name": "List Components",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/components/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "components",
+                                ""
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Search Components",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/components/search?search=ESP32",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "components",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": "ESP32"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create Component (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/components/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "components",
+                                ""
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"ESP32-WROOM-32\",\n  \"quantity\": 15,\n  \"category_id\": 1,\n  \"datasheet_url\": \"https://example.com/datasheet.pdf\",\n  \"technical_specs\": {\n    \"voltage\": \"3.3V\",\n    \"wifi\": \"802.11 b/g/n\"\n  }\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Update Component (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/components/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "components",
+                                "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"ESP32-WROOM-32 (Updated)\",\n  \"quantity\": 10\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Component (Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/components/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "components",
+                                "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "5. Delete Extracted Item (Admin)",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{base_url}}/api/v1/invoices/items/c810d7a6-b519-482a-912a-048b2611a5b8",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "invoices",
-                "items",
-                "c810d7a6-b519-482a-912a-048b2611a5b8"
-              ]
-            }
-          }
+            "name": "Invoices",
+            "description": "Invoice management. Upload (Admin/User), Approve/Edit/Delete (Admin Only).",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{auth_token}}",
+                        "type": "string"
+                    }
+                ]
+            },
+            "item": [
+                {
+                    "name": "1. Upload PDF Invoice (Admin & User)",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/invoices/upload",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "invoices",
+                                "upload"
+                            ]
+                        },
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "2. List All Invoices",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/invoices/",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "invoices",
+                                ""
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "3. Get Invoice Detail",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "invoices",
+                                "f1c50e93-2710-449e-b9b5-6804a9af35b8"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "4. Fix/Edit Extracted Item (Admin)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/invoices/items/c810d7a6-b519-482a-912a-048b2611a5b8",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "invoices",
+                                "items",
+                                "c810d7a6-b519-482a-912a-048b2611a5b8"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"clean_name\": \"Corrected Component Name\",\n  \"quantity\": 100,\n  \"category_name\": \"Resistors\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "5. Delete Extracted Item (Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/invoices/items/c810d7a6-b519-482a-912a-048b2611a5b8",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "invoices",
+                                "items",
+                                "c810d7a6-b519-482a-912a-048b2611a5b8"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "6. Approve & Add to Inventory (Admin)",
+                    "request": {
+                        "method": "POST",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8/approve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "invoices",
+                                "f1c50e93-2710-449e-b9b5-6804a9af35b8",
+                                "approve"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "7. Delete Entire Invoice (Admin)",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "invoices",
+                                "f1c50e93-2710-449e-b9b5-6804a9af35b8"
+                            ]
+                        }
+                    }
+                }
+            ]
         },
         {
-          "name": "6. Approve & Add to Inventory (Admin)",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8/approve",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "invoices",
-                "f1c50e93-2710-449e-b9b5-6804a9af35b8",
-                "approve"
-              ]
-            }
-          }
-        },
-        {
-          "name": "7. Delete Entire Invoice (Admin)",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "invoices",
-                "f1c50e93-2710-449e-b9b5-6804a9af35b8"
-              ]
-            }
-          }
+            "name": "AI Suggestions",
+            "description": "AI driven endpoints. Available to all roles (Admin, User, Chatter).",
+            "auth": {
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{access_token}}",
+                        "type": "string"
+                    }
+                ]
+            },
+            "item": [
+                {
+                    "name": "1. Generate Project Ideas",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/suggestions/project-ideas",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "suggestions",
+                                "project-ideas"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"focus_area\": \"IoT or Smart Home automation\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "2. Get Deep Project Details",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/suggestions/give-detail",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "suggestions",
+                                "give-detail"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"project_name\": \"Smart Wi-Fi Thermostat\",\n  \"hardware_list\": [\n    \"ESP32-WROOM-32\",\n    \"DHT22 Temperature Sensor\",\n    \"5V Relay Module\",\n    \"OLED Display 0.96\"\n  ]\n}"
+                        }
+                    }
+                }
+            ]
         }
-      ]
-    },
-    {
-      "name": "AI Suggestions",
-      "description": "AI driven endpoints. Available to all roles (Admin, User, Chatter).",
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{access_token}}",
-            "type": "string"
-          }
-        ]
-      },
-      "item": [
-        {
-          "name": "1. Generate Project Ideas",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/suggestions/project-ideas",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "suggestions",
-                "project-ideas"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"focus_area\": \"IoT or Smart Home automation\"\n}"
-            }
-          }
-        },
-        {
-          "name": "2. Get Deep Project Details",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/suggestions/give-detail",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "suggestions",
-                "give-detail"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"project_name\": \"Smart Wi-Fi Thermostat\",\n  \"hardware_list\": [\n    \"ESP32-WROOM-32\",\n    \"DHT22 Temperature Sensor\",\n    \"5V Relay Module\",\n    \"OLED Display 0.96\"\n  ]\n}"
-            }
-          }
-        }
-      ]
-    }
-  ]
+    ]
 }

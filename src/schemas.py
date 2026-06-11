@@ -116,6 +116,7 @@ class InvoiceBase(BaseModel):
 
 class InvoiceResponse(InvoiceBase):
     id: UUID
+    user_id: int
     created_at: datetime
     items: List[InvoiceItemResponse] = []
 

@@ -50,7 +50,9 @@ async def upload_and_process_invoice(
         except ValueError:
             parsed_date = None
 
-    db_invoice = models.Invoice(store_name=ai_data.store_name, invoice_date=parsed_date)
+    db_invoice = models.Invoice(
+        store_name=ai_data.store_name, invoice_date=parsed_date, user_id=current_user.id
+    )
     db.add(db_invoice)
     db.flush()
 
@@ -74,8 +76,20 @@ async def approve_invoice(
     invoice_id: UUID,
     db: Session = Depends(get_db),
     redis: Optional[Any] = Depends(get_redis),
-    current_user: models.User = Depends(RoleChecker(["admin"])),
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
+    # Fetch the invoice to check ownership and get user_id
+    query = db.query(models.Invoice).filter(models.Invoice.id == invoice_id)
+    if current_user.role != "admin":
+        query = query.filter(models.Invoice.user_id == current_user.id)
+    invoice = query.first()
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found.")
+    if current_user.role != "admin" and invoice.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="Not authorized to approve this invoice."
+        )
+
     items = (
         db.query(models.InvoiceItem)
         .filter(
@@ -145,7 +159,10 @@ async def approve_invoice(
                 existing_component.category_id = category_id
         else:
             new_component = models.Component(
-                name=item.clean_name, quantity=item.quantity, category_id=category_id
+                name=item.clean_name,
+                quantity=item.quantity,
+                category_id=category_id,
+                user_id=invoice.user_id,
             )
             db.add(new_component)
             comp_dict[item_comp_lower] = new_component
@@ -178,12 +195,11 @@ async def list_invoices(
     current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
     """List all invoices in the system along with their items."""
+    query = db.query(models.Invoice)
+    if current_user.role != "admin":
+        query = query.filter(models.Invoice.user_id == current_user.id)
     return (
-        db.query(models.Invoice)
-        .order_by(models.Invoice.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
+        query.order_by(models.Invoice.created_at.desc()).offset(skip).limit(limit).all()
     )
 
 
@@ -194,7 +210,10 @@ async def get_invoice_detail(
     current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
     """Fetch all details and items of a specific invoice by ID."""
-    invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
+    query = db.query(models.Invoice).filter(models.Invoice.id == invoice_id)
+    if current_user.role != "admin":
+        query = query.filter(models.Invoice.user_id == current_user.id)
+    invoice = query.first()
     if not invoice:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found."
@@ -206,10 +225,13 @@ async def get_invoice_detail(
 async def delete_invoice(
     invoice_id: UUID,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(RoleChecker(["admin"])),
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
     """Delete the invoice and all its unprocessed items in the approval pool."""
-    invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
+    query = db.query(models.Invoice).filter(models.Invoice.id == invoice_id)
+    if current_user.role != "admin":
+        query = query.filter(models.Invoice.user_id == current_user.id)
+    invoice = query.first()
     if not invoice:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found."
@@ -230,7 +252,7 @@ async def update_invoice_item(
     item_id: UUID,
     item_update: schemas.InvoiceItemBase,  # Kullanıcı adı, adet veya kategoriyi düzeltebilir
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(RoleChecker(["admin"])),
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
     """
     Manually edit an item in the approval pool.
@@ -240,9 +262,16 @@ async def update_invoice_item(
         db.query(models.InvoiceItem).filter(models.InvoiceItem.id == item_id).first()
     )
     if not db_item:
+        raise HTTPException(status_code=404, detail="Invoice item not found.")
+
+    if current_user.role != "admin" and db_item.invoice.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Invoice item not found."
+            status_code=403, detail="Not authorized to delete this item."
         )
+        raise HTTPException(status_code=404, detail="Invoice item not found.")
+
+    if current_user.role != "admin" and db_item.invoice.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this item.")
 
     if db_item.is_processed:
         raise HTTPException(
@@ -264,16 +293,23 @@ async def update_invoice_item(
 async def delete_invoice_item(
     item_id: UUID,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(RoleChecker(["admin"])),
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
     """Completely remove an unwanted or incorrect item from the invoice approval pool."""
     db_item = (
         db.query(models.InvoiceItem).filter(models.InvoiceItem.id == item_id).first()
     )
     if not db_item:
+        raise HTTPException(status_code=404, detail="Invoice item not found.")
+
+    if current_user.role != "admin" and db_item.invoice.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Invoice item not found."
+            status_code=403, detail="Not authorized to delete this item."
         )
+        raise HTTPException(status_code=404, detail="Invoice item not found.")
+
+    if current_user.role != "admin" and db_item.invoice.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this item.")
 
     if db_item.is_processed:
         raise HTTPException(
