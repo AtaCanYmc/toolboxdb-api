@@ -68,7 +68,7 @@ class OpenAIProvider(LLMProvider):
             },
         )
 
-        user_content = f"Generate innovative project suggestions for difficulty level: {difficulty_level}."
+        user_content = f"Generate 3-5 innovative project suggestions for difficulty level: {difficulty_level}."
 
         completion = self.client.beta.chat.completions.parse(
             model=self.model,

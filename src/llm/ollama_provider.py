@@ -72,7 +72,7 @@ class OllamaProvider(LLMProvider):
             },
         )
 
-        user_content = f"Generate innovative project suggestions for difficulty level: {difficulty_level}."
+        user_content = f"Generate 3-5 innovative project suggestions for difficulty level: {difficulty_level}."
 
         response = ollama.chat(
             model=self.model,
