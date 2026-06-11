@@ -69,6 +69,7 @@ class ComponentUpdate(BaseModel):
 
 class ComponentResponse(ComponentBase):
     id: UUID
+    user_id: int
     created_at: datetime
     updated_at: datetime
 

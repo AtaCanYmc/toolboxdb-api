@@ -23,6 +23,9 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     created_at = Column(DateTime(timezone=True), default=get_utc_now)
+    components = relationship(
+        "Component", back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class Category(Base):
@@ -41,6 +44,10 @@ class Category(Base):
 class Component(Base):
     __tablename__ = "components"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    user = relationship("User", back_populates="components")
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="SET NULL"))
     category = relationship("Category", back_populates="components")
     name = Column(String(255), nullable=False)

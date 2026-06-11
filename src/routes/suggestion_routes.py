@@ -37,9 +37,11 @@ async def get_ai_project_suggestions(
             "Fetching active components for project suggestions",
             extra={"correlation_id": corr_id},
         )
-        # 1. Fetch active component cards with quantity greater than 0 from the database
         active_components = (
-            db.query(models.Component).filter(models.Component.quantity > 0).all()
+            db.query(models.Component)
+            .filter(models.Component.quantity > 0)
+            .filter(models.Component.user_id == current_user.id)
+            .all()
         )
 
         # 2. Prepare the pure string list expected by the LLM layer (Loose Coupling)
