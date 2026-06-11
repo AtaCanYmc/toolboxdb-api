@@ -5,13 +5,26 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 
-logger = logging.getLogger("api_tracker")
+correlation_id_ctx_var: ContextVar[str] = ContextVar("correlation_id", default="")
+
+
+class CorrelationIdFilter(logging.Filter):
+    def filter(self, record):
+        if not hasattr(record, "correlation_id"):
+            corr_id = correlation_id_ctx_var.get()
+            record.correlation_id = corr_id if corr_id else "SYSTEM"
+        return True
+
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - [%(correlation_id)s] - %(message)s",
 )
 
-correlation_id_ctx_var: ContextVar[str] = ContextVar("correlation_id", default="")
+for handler in logging.root.handlers:
+    handler.addFilter(CorrelationIdFilter())
+
+logger = logging.getLogger("api_tracker")
 
 
 class LoggingAndCorrelationMiddleware(BaseHTTPMiddleware):
