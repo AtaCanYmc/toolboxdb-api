@@ -3,10 +3,11 @@ import os
 import uvicorn
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from src.middleware import add_middleware
 from src.routes import add_routes
 from src.cache import init_redis, close_redis
+from fastapi_i18n import i18n
 
 # Load .env file if present. Use DOTENV_PATH to override if needed.
 dotenv_path = os.getenv("DOTENV_PATH")
@@ -56,7 +57,7 @@ async def lifespan(app: FastAPI):
     logger.info("Redis connection closed. Shutdown complete.")
 
 
-app = FastAPI(title=APP_TITLE, lifespan=lifespan)
+app = FastAPI(title=APP_TITLE, lifespan=lifespan, dependencies=[Depends(i18n)])
 add_middleware(app)
 add_routes(app)
 

@@ -1,0 +1,31 @@
+# Turkish translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-06-11 17:47+0300\n"
+"PO-Revision-Date: 2026-06-11 17:47+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: tr\n"
+"Language-Team: tr <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: src/routes/auth_routes.py:26
+msgid "New registrations are not currently accepted."
+msgstr "Şu anda yeni kayıt alınmamaktadır."
+
+#: src/routes/auth_routes.py:41
+msgid "Username or email already registered"
+msgstr "Kullanıcı adı veya e-posta zaten kayıtlı"
+
+#: src/routes/auth_routes.py:73
+msgid "Incorrect username or password"
+msgstr "Hatalı kullanıcı adı veya şifre"

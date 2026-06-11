@@ -5,6 +5,7 @@ from src.db import get_db
 from src import models, schemas
 from src.utils.security import get_password_hash, verify_password, create_access_token
 from src.routes.auth_deps import get_current_user
+from fastapi_i18n import _
 import logging
 import os
 
@@ -22,7 +23,7 @@ async def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
     if os.getenv("ALLOW_REGISTRATION", "True").lower() == "false":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="New registrations are not currently accepted.",
+            detail=_("New registrations are not currently accepted."),
         )
 
     # Check if username or email exists
@@ -37,7 +38,7 @@ async def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username or email already registered",
+            detail=_("Username or email already registered"),
         )
 
     # Hash password and save user
@@ -69,7 +70,7 @@ async def login(
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail=_("Incorrect username or password"),
             headers={"WWW-Authenticate": "Bearer"},
         )
 
