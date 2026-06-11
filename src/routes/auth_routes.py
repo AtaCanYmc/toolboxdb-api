@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from src.db import get_db
 from src import models, schemas
 from src.utils.security import get_password_hash, verify_password, create_access_token
+from src.routes.auth_deps import get_current_user
 import logging
 import os
 
@@ -77,3 +78,11 @@ async def login(
 
     logger.info(f"User logged in: {user.username}")
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@auth_router.get("/me", response_model=schemas.UserResponse)
+async def read_users_me(current_user: models.User = Depends(get_current_user)):
+    """
+    Get current logged-in user details.
+    """
+    return current_user
