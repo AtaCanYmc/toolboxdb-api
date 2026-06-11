@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from src.routes.component_routes import component_router
 from src import models
 from src.db import get_db
+from src.routes.auth_deps import get_current_user
 
 
 # =====================================================================
@@ -29,12 +30,13 @@ def app():
 
 
 @pytest.fixture
-def client(app):
+def client(app, mock_current_admin):
     """
     GIVEN a FastAPI application
     WHEN creating a test client
-    THEN it should provide synchronous HTTP testing capability.
+    THEN it should provide synchronous HTTP testing capability with admin auth override.
     """
+    app.dependency_overrides[get_current_user] = lambda: mock_current_admin
     return TestClient(app)
 
 
@@ -90,6 +92,7 @@ def sample_component_db(sample_component_uuid):
     mock_component.name = "ESP32 Development Board"
     mock_component.quantity = 5
     mock_component.category_id = 1
+    mock_component.user_id = 1
     mock_component.datasheet_url = "https://example.com/esp32.pdf"
     mock_component.technical_specs = {"voltage": "3.3V", "cores": 2}
     mock_component.created_at = datetime.utcnow()
@@ -124,9 +127,9 @@ def test_list_components_success(client, mock_db_session, sample_component_db):
     THEN it should return a 200 response with a list of all components ordered by updated_at descending.
     """
     # Arrange
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
-        sample_component_db
-    ]
+    (
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all  # noqa: E501
+    ).return_value = [sample_component_db]
 
     def get_db_override():
         return mock_db_session
@@ -148,9 +151,9 @@ def test_list_components_with_pagination(client, mock_db_session, sample_compone
     THEN it should apply pagination correctly to the query.
     """
     # Arrange
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
-        sample_component_db
-    ]
+    (
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all  # noqa: E501
+    ).return_value = [sample_component_db]
 
     def get_db_override():
         return mock_db_session
@@ -163,11 +166,13 @@ def test_list_components_with_pagination(client, mock_db_session, sample_compone
     # Assert
     assert response.status_code == 200
     # Verify pagination parameters were used
-    mock_db_session.query.return_value.order_by.return_value.offset.assert_called_with(
-        10
-    )
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.assert_called_with(
-        50
+    (
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.offset
+    ).assert_called_with(10)
+    (
+        (
+            mock_db_session.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit
+        ).assert_called_with(50)
     )
 
 
@@ -178,9 +183,9 @@ def test_list_components_empty(client, mock_db_session):
     THEN it should return a 200 response with an empty list.
     """
     # Arrange
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
-        []
-    )
+    (
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all  # noqa: E501
+    ).return_value = []
 
     def get_db_override():
         return mock_db_session
@@ -213,9 +218,9 @@ def test_search_components_success(
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
     chain = mock_query.outerjoin.return_value
-    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
-        sample_component_db
-    ]
+    (
+        chain.filter.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all
+    ).return_value = [sample_component_db]
 
     def get_db_override():
         return mock_db_session
@@ -285,9 +290,9 @@ def test_search_components_no_results(client, mock_db_session):
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
     chain = mock_query.outerjoin.return_value
-    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
-        []
-    )
+    (
+        chain.filter.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all
+    ).return_value = []
 
     def get_db_override():
         return mock_db_session
@@ -314,9 +319,9 @@ def test_search_components_case_insensitive(
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
     chain = mock_query.outerjoin.return_value
-    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
-        sample_component_db
-    ]
+    (
+        chain.filter.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all
+    ).return_value = [sample_component_db]
 
     def get_db_override():
         return mock_db_session
@@ -343,9 +348,9 @@ def test_search_components_by_category_name(
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
     chain = mock_query.outerjoin.return_value
-    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
-        sample_component_db
-    ]
+    (
+        chain.filter.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all
+    ).return_value = [sample_component_db]
 
     def get_db_override():
         return mock_db_session
@@ -492,9 +497,9 @@ def test_update_component_success(
     # Arrange
     component_update_payload = {"name": "Updated ESP32 Board", "quantity": 10}
 
-    mock_db_session.query.return_value.filter.return_value.first.return_value = (
-        sample_component_db
-    )
+    (
+        mock_db_session.query.return_value.filter.return_value.filter.return_value.first
+    ).return_value = sample_component_db
     mock_db_session.commit = MagicMock()
     mock_db_session.refresh = MagicMock()
 
@@ -528,9 +533,9 @@ def test_update_component_partial_update(
         # name is NOT provided, should remain unchanged
     }
 
-    mock_db_session.query.return_value.filter.return_value.first.return_value = (
-        sample_component_db
-    )
+    (
+        mock_db_session.query.return_value.filter.return_value.filter.return_value.first
+    ).return_value = sample_component_db
     mock_db_session.commit = MagicMock()
     mock_db_session.refresh = MagicMock()
 
@@ -556,7 +561,9 @@ def test_update_component_not_found(client, mock_db_session, sample_component_uu
     THEN it should return 404 with error detail "Component not found".
     """
     # Arrange
-    mock_db_session.query.return_value.filter.return_value.first.return_value = None
+    (
+        mock_db_session.query.return_value.filter.return_value.filter.return_value.first
+    ).return_value = None
 
     def get_db_override():
         return mock_db_session
@@ -607,9 +614,9 @@ def test_delete_component_success(
     THEN it should delete the component and return 204 No Content.
     """
     # Arrange
-    mock_db_session.query.return_value.filter.return_value.first.return_value = (
-        sample_component_db
-    )
+    (
+        mock_db_session.query.return_value.filter.return_value.filter.return_value.first
+    ).return_value = sample_component_db
     mock_db_session.delete = MagicMock()
     mock_db_session.commit = MagicMock()
 
@@ -634,7 +641,9 @@ def test_delete_component_not_found(client, mock_db_session, sample_component_uu
     THEN it should return 404 with error detail "Component not found.".
     """
     # Arrange
-    mock_db_session.query.return_value.filter.return_value.first.return_value = None
+    (
+        mock_db_session.query.return_value.filter.return_value.filter.return_value.first
+    ).return_value = None
 
     def get_db_override():
         return mock_db_session
@@ -726,9 +735,9 @@ def test_component_search_with_special_characters(
     mock_query = MagicMock()
     mock_db_session.query.return_value = mock_query
     chain = mock_query.outerjoin.return_value
-    chain.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = [
-        sample_component_db
-    ]
+    (
+        chain.filter.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all
+    ).return_value = [sample_component_db]
 
     def get_db_override():
         return mock_db_session
@@ -761,9 +770,9 @@ def test_pagination_parameters_applied_correctly(
     THEN skip and limit should be correctly applied to the database query.
     """
     # Arrange
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.return_value.all.return_value = (
-        []
-    )
+    (
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit.return_value.all  # noqa: E501
+    ).return_value = []
 
     def get_db_override():
         return mock_db_session
@@ -777,9 +786,49 @@ def test_pagination_parameters_applied_correctly(
 
     # Assert
     assert response.status_code == 200
-    mock_db_session.query.return_value.order_by.return_value.offset.assert_called_with(
-        expected_offset
-    )
-    mock_db_session.query.return_value.order_by.return_value.offset.return_value.limit.assert_called_with(
-        expected_limit
-    )
+    (
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.offset
+    ).assert_called_with(expected_offset)
+    (
+        mock_db_session.query.return_value.filter.return_value.order_by.return_value.offset.return_value.limit
+    ).assert_called_with(expected_limit)
+
+
+# =====================================================================
+# ENDPOINT SECURITY: RBAC & Authentication Tests
+# =====================================================================
+
+
+def test_unauthenticated_access(app):
+    from fastapi.testclient import TestClient
+
+    # Do not override auth for this client
+    unauth_client = TestClient(app)
+    response = unauth_client.get("/api/v1/components/")
+    assert response.status_code == 401
+
+
+def test_role_chatter_forbidden_read(app, mock_current_chatter):
+    from fastapi.testclient import TestClient
+    from src.routes.auth_deps import get_current_user
+
+    app.dependency_overrides[get_current_user] = lambda: mock_current_chatter
+    chatter_client = TestClient(app)
+
+    response = chatter_client.get("/api/v1/components/")
+    assert response.status_code == 403
+    assert "Operation not permitted" in response.json()["detail"]
+
+
+def test_role_user_forbidden_write(app, mock_current_user):
+    from fastapi.testclient import TestClient
+    from src.routes.auth_deps import get_current_user
+
+    app.dependency_overrides[get_current_user] = lambda: mock_current_user
+    user_client = TestClient(app)
+
+    payload = {"name": "Test", "quantity": 1}
+    response = user_client.post("/api/v1/components/", json=payload)
+
+    assert response.status_code == 403
+    assert "Operation not permitted" in response.json()["detail"]
