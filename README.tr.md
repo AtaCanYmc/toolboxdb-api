@@ -17,6 +17,7 @@ Aşağıdaki tablo ve maddeler projede öne çıkan yetenekleri özetler:
 | **Automatik PDF Fatura Ayrıştırma (LLM)** | PDF'lerden yapılandırılmış (structured) çıktı üreten LLM destekli işlem hattı (öğe ayırma, miktar, tedarikçi, tarih). |
 | **Staging / Taslak Alanı** | Ayrıştırılan faturalar `is_processed = False` ile `Invoice`/`InvoiceItem` modellerinde taslak olarak saklanır; manuel/otomatik doğrulama sonrası envantere eşlenir. |
 | **JWT Kimlik Doğrulama** | Endpoint'leri `OAuth2PasswordBearer` ve JWT ile güvenceye alma. Bcrypt şifrelemeli kullanıcı kayıt ve giriş akışı. |
+| **Çok Kiracılı Bileşenler (Multi-Tenant)** | Bileşenler tamamen kullanıcılara özeldir. Tüm CRUD işlemleri `user_id` üzerinden filtrelenir; tam gizlilik ve sahiplik sağlanır. |
 | **Modüler Monolit Mimari & ID Tip Güvenliği** | `src/routes` yalnızca HTTP katmanını yönetir; servis mantığı `src/services` içinde. Tür güvenliği: **Components** için `UUID`, **Categories** için `int`. Router path'leri tip olarak zorlanır. |
 | **Yüksek-ROI Redis Önbellekleme** | Referans verileri (ör. kategori listesi) Redis'te cache'lenir. Yazma işlemlerinde (POST/PUT/DELETE) cache hemen invalid edilir. Dinamik envanter miktarları asla cache'lenmez. |
 | **Prod-ready Operasyonel Özellikler** | **Correlation ID** takibi; `/health` için SQLAlchemy `text("SELECT 1")` kullanılarak DB sağlık kontrolü; Docker tabanlı CI pipeline'ları. |

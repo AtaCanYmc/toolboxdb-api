@@ -17,6 +17,7 @@ The table below summarizes the system's primary capabilities:
 | **Automated PDF Invoice Parsing (LLM)** | LLM-driven pipeline that extracts structured outputs (line items, quantities, suppliers, dates) from PDF invoices. |
 | **Staging / Draft Area** | Parsed invoices are saved as drafts (`is_processed = False`) in `Invoice`/`InvoiceItem` models for manual or automated review before final ingestion. |
 | **JWT Authentication** | Secure endpoints with `OAuth2PasswordBearer` and JWT. User registration and login flow with Bcrypt hashed passwords. |
+| **Multi-Tenant Components** | Components are strictly isolated per user. Every CRUD operation filters by `user_id`, ensuring full privacy and ownership of inventory. |
 | **Modular Monolith Architecture & ID Type Safety** | `src/routes` handles HTTP concerns only; business logic lives in `src/services`. Strict typing: **Components** use `UUID`, **Categories** use `int`, and route path parameters enforce these types. |
 | **High-ROI Redis Caching** | Reference data (e.g., category lists) are cached in Redis. Write operations (POST/PUT/DELETE) immediately invalidate relevant cache keys. Dynamic inventory counts are never cached. |
 | **Production-ready Operational Features** | Correlation ID propagation, a `/health` endpoint that uses SQLAlchemy `text("SELECT 1")` for DB health checks, and Dockerized CI pipelines. |
