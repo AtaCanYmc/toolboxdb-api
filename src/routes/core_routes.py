@@ -6,6 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from src.db import get_db
 import time
+from fastapi_i18n import _
 
 load_dotenv()
 core_router = APIRouter(tags=["System & Health"])
@@ -41,7 +42,7 @@ async def health_check(db: Session = Depends(get_db)):
     if "unhealthy" in db_status:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Database connection is down.",
+            detail=_("Database connection is down."),
         )
 
     return {"status": "healthy", "database": db_status, "latency_ms": latency}
@@ -56,7 +57,7 @@ def custom_404_handler(request, exc):
         status_code=status.HTTP_404_NOT_FOUND,
         content={
             "error": "Not Found",
-            "message": f"İstediğiniz rota bulunamadı: '{request.url.path}'",
+            "message": _(f"İstediğiniz rota bulunamadı: '{request.url.path}'"),
             "documentation": "/docs",
         },
     )

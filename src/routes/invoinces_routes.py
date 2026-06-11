@@ -13,6 +13,7 @@ from src.pdf import PDFService
 from src.cache import get_redis
 from typing import Optional, Any
 from src.routes.auth_deps import RoleChecker
+from fastapi_i18n import _
 
 invoinces_router = APIRouter(prefix="/api/v1/invoices", tags=["Invoices"])
 
@@ -40,7 +41,7 @@ async def upload_and_process_invoice(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"AI Parsing error ({file.filename}): {str(e)}",
+            detail=_(f"AI Parsing error ({file.filename}): {str(e)}"),
         )
 
     parsed_date = None
@@ -102,7 +103,7 @@ async def approve_invoice(
     if not items:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No unprocessed items found to approve.",
+            detail=_("No unprocessed items found to approve."),
         )
 
     # Extract distinct target names
@@ -178,7 +179,9 @@ async def approve_invoice(
             pass
 
     return {
-        "message": f"Successfully processed {len(items)} items from the invoice and updated inventory stock."
+        "message": _(
+            f"Successfully processed {len(items)} items from the invoice and updated inventory stock."
+        )
     }
 
 
@@ -276,7 +279,9 @@ async def update_invoice_item(
     if db_item.is_processed:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot modify an item that has already been processed into stock.",
+            detail=_(
+                "Cannot modify an item that has already been processed into stock."
+            ),
         )
 
     # Apply fresh incoming data to the model
@@ -314,7 +319,9 @@ async def delete_invoice_item(
     if db_item.is_processed:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete an item that has already been processed into stock.",
+            detail=_(
+                "Cannot delete an item that has already been processed into stock."
+            ),
         )
 
     db.delete(db_item)

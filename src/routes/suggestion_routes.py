@@ -9,6 +9,7 @@ from src.llm.llm_provider import LLMProvider
 import logging
 from src.middleware.middleware import get_correlation_id
 from src.routes.auth_deps import RoleChecker
+from fastapi_i18n import _
 
 logger = logging.getLogger("api_tracker")
 
@@ -88,7 +89,7 @@ async def get_ai_project_suggestions(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="A critical error occurred on the server side.",
+            detail=_("A critical error occurred on the server side."),
         )
 
 
@@ -149,5 +150,5 @@ async def get_project_details(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="A critical error occurred on the server side.",
+            detail=_("A critical error occurred on the server side."),
         )

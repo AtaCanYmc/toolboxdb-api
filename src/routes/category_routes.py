@@ -7,6 +7,7 @@ from typing import Optional, Any
 from sqlalchemy.orm import Session
 from typing import List
 from src.routes.auth_deps import RoleChecker
+from fastapi_i18n import _
 
 category_router = APIRouter(
     prefix="/api/v1/category",
@@ -100,7 +101,7 @@ async def create_category(
     if existing_category:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Bu isimde bir kategori zaten mevcut.",
+            detail=_("Bu isimde bir kategori zaten mevcut."),
         )
 
     db_category = models.Category(**category.model_dump())
