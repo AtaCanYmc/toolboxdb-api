@@ -8,6 +8,7 @@ from src.llm.llm_factory import get_llm_provider
 from src.llm.llm_provider import LLMProvider
 import logging
 from src.middleware.middleware import get_correlation_id
+from src.routes.auth_deps import get_current_user
 
 logger = logging.getLogger("api_tracker")
 
@@ -23,6 +24,7 @@ async def get_ai_project_suggestions(
     payload: schemas.ProjectSuggestionRequest,
     db: Session = Depends(get_db),
     llm: LLMProvider = Depends(get_llm_provider),
+    current_user: models.User = Depends(get_current_user),
 ):
     """
     Automatically analyzes active stock components in the database.

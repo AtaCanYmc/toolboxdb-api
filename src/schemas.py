@@ -12,6 +12,27 @@ import re
 # JSON serileştirme işlemleri için kullanılır.
 
 
+class UserRegister(BaseModel):
+    username: str = Field(..., description="Unique username")
+    email: str = Field(..., description="User's email address")
+    password: str = Field(..., min_length=6, description="Plain text password")
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 class CategoryBase(BaseModel):
     name: str
 
