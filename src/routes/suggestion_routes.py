@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Header
 import groq
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
@@ -26,6 +26,7 @@ suggestion_router = APIRouter(
 )
 async def get_ai_project_suggestions(
     payload: schemas.ProjectSuggestionRequest,
+    accept_language: str = Header("en"),
     db: Session = Depends(get_db),
     llm: LLMProvider = Depends(get_llm_provider),
     current_user: models.User = Depends(RoleChecker(["admin", "user", "chatter"])),
@@ -63,7 +64,7 @@ async def get_ai_project_suggestions(
             difficulty_level=payload.difficulty_level,
             extra_message=payload.extra_message,
             response_format=schemas.ProjectSuggestionResponse,
-            target_language=payload.target_language,
+            target_language=accept_language.split(",")[0],
         )
 
         logger.info(
@@ -101,6 +102,7 @@ async def get_ai_project_suggestions(
 )
 async def get_project_details(
     payload: schemas.ProjectDetailRequest,
+    accept_language: str = Header("en"),
     llm: LLMProvider = Depends(get_llm_provider),
     current_user: models.User = Depends(RoleChecker(["admin", "user", "chatter"])),
 ):
@@ -120,7 +122,7 @@ async def get_project_details(
             difficulty=payload.difficulty,
             components=payload.components,
             response_format=schemas.AIProjectSuggestion,
-            target_language=payload.target_language,
+            target_language=accept_language.split(",")[0],
         )
 
         logger.info(

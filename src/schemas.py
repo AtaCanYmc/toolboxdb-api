@@ -209,10 +209,6 @@ class ProjectSuggestionRequest(BaseModel):
             " (E.g.: Only smart home projects)"
         ),
     )
-    target_language: str = Field(
-        default="English",
-        description="Target language for the AI output",
-    )
 
 
 class ProjectDetailRequest(BaseModel):
@@ -221,10 +217,6 @@ class ProjectDetailRequest(BaseModel):
     difficulty: str = Field(description="Difficulty level of the project")
     components: List[str] = Field(
         description="Names of the components to be included in the project"
-    )
-    target_language: str = Field(
-        default="English",
-        description="Target language for the AI output",
     )
 
 
