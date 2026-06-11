@@ -16,6 +16,7 @@ Aşağıdaki tablo ve maddeler projede öne çıkan yetenekleri özetler:
 |---|---|
 | **Automatik PDF Fatura Ayrıştırma (LLM)** | PDF'lerden yapılandırılmış (structured) çıktı üreten LLM destekli işlem hattı (öğe ayırma, miktar, tedarikçi, tarih). |
 | **Staging / Taslak Alanı** | Ayrıştırılan faturalar `is_processed = False` ile `Invoice`/`InvoiceItem` modellerinde taslak olarak saklanır; manuel/otomatik doğrulama sonrası envantere eşlenir. |
+| **JWT Kimlik Doğrulama** | Endpoint'leri `OAuth2PasswordBearer` ve JWT ile güvenceye alma. Bcrypt şifrelemeli kullanıcı kayıt ve giriş akışı. |
 | **Modüler Monolit Mimari & ID Tip Güvenliği** | `src/routes` yalnızca HTTP katmanını yönetir; servis mantığı `src/services` içinde. Tür güvenliği: **Components** için `UUID`, **Categories** için `int`. Router path'leri tip olarak zorlanır. |
 | **Yüksek-ROI Redis Önbellekleme** | Referans verileri (ör. kategori listesi) Redis'te cache'lenir. Yazma işlemlerinde (POST/PUT/DELETE) cache hemen invalid edilir. Dinamik envanter miktarları asla cache'lenmez. |
 | **Prod-ready Operasyonel Özellikler** | **Correlation ID** takibi; `/health` için SQLAlchemy `text("SELECT 1")` kullanılarak DB sağlık kontrolü; Docker tabanlı CI pipeline'ları. |
@@ -124,6 +125,7 @@ uvicorn main:app --reload
 Uygulama tipik olarak `http://127.0.0.1:8000`'de çalışır. Swagger UI: `http://127.0.0.1:8000/docs`
 
 ## Sağlık Kontrolleri & Güvenlik Notları
+- Sistem, standart OAuth2 prosedürleri ile çalışan JWT Kimlik Doğrulaması (Authentication & Authorization) içerir.
 - `/health` endpoint'i, SQLAlchemy ile DB'ye şu şekilde güvenli bir sorgu atar: `db.execute(text("SELECT 1"))`. (Ham stringler kullanılmaz.)
 - Tüm eksik yollar ve hatalar JSON yapılı özel hata cevabı döner; HTML hata sayfaları geri dönmez.
 - Arama endpoint'leri boş/yalnızca-boşluk girişlerini hızlıca `[]` ile yanıtlayarak gereksiz DB bağlantısını önler.

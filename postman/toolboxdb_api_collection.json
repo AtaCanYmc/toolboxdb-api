@@ -30,6 +30,94 @@
       ]
     },
     {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"email\": \"admin@example.com\",\n    \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "secret123",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Categories (Cached)",
       "item": [
         {
@@ -355,7 +443,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"extra_components\": [\"OLED Ekran i2c\", \"SG90 Servo Motor\"],\n    \"difficulty_level\": \"Medium\",\n    \"extra_message\": \"Akıllı ev veya otomasyon odaklı bir şeyler önerebilir misin reis\"\n}"
+              "raw": "{\n    \"extra_components\": [\"OLED Ekran i2c\", \"SG90 Servo Motor\"],\n    \"difficulty_level\": \"Medium\",\n    \"extra_message\": \"Ak\u0131ll\u0131 ev veya otomasyon odakl\u0131 bir \u015feyler \u00f6nerebilir misin reis\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/suggestions/project-ideas",
@@ -369,7 +457,17 @@
                 "project-ideas"
               ]
             },
-            "description": "Reads core inventory automatically and processes structural project recipe cards via Jinja2 & Groq backend layer."
+            "description": "Reads core inventory automatically and processes structural project recipe cards via Jinja2 & Groq backend layer.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "response": []
         }
@@ -418,6 +516,11 @@
     },
     {
       "key": "active_item_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
       "value": "",
       "type": "string"
     }
