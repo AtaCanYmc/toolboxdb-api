@@ -5,6 +5,7 @@ from src.db import get_db
 from src import models, schemas
 from src.utils.security import get_password_hash, verify_password, create_access_token
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,12 @@ auth_router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
     status_code=status.HTTP_201_CREATED,
 )
 async def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
+    if os.getenv("ALLOW_REGISTRATION", "True").lower() == "false":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="New registrations are not currently accepted.",
+        )
+
     # Check if username or email exists
     existing_user = (
         db.query(models.User)
