@@ -269,7 +269,17 @@
           },
           "response": []
         }
-      ]
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      }
     },
     {
       "name": "Components",
@@ -299,16 +309,6 @@
                   "value": "100"
                 }
               ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
             }
           },
           "response": []
@@ -335,21 +335,21 @@
                   "value": "ESP32"
                 }
               ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
             }
           },
           "response": []
         }
-      ]
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      }
     },
     {
       "name": "Invoices & AI Flow",
@@ -477,21 +477,21 @@
                 "project-ideas"
               ]
             },
-            "description": "Reads core inventory automatically and processes structural project recipe cards via Jinja2 & Groq backend layer.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            }
+            "description": "Reads core inventory automatically and processes structural project recipe cards via Jinja2 & Groq backend layer."
           },
           "response": []
         }
-      ]
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      }
     }
   ],
   "event": [

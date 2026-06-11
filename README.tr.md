@@ -127,6 +127,7 @@ Uygulama tipik olarak `http://127.0.0.1:8000`'de çalışır. Swagger UI: `http:
 
 ## Sağlık Kontrolleri & Güvenlik Notları
 - Sistem, standart OAuth2 prosedürleri ile çalışan JWT Kimlik Doğrulaması (Authentication & Authorization) içerir.
+- **Tam Koruma**: Uygulamanın tüm temel işlevleri (Kategoriler, Bileşenler, Faturalar, Yapay Zeka Önerileri) router seviyesinde kilitlenmiştir ve Bearer token zorunludur. Sadece `/health` ve giriş yolları halka açıktır.
 - `/health` endpoint'i, SQLAlchemy ile DB'ye şu şekilde güvenli bir sorgu atar: `db.execute(text("SELECT 1"))`. (Ham stringler kullanılmaz.)
 - Tüm eksik yollar ve hatalar JSON yapılı özel hata cevabı döner; HTML hata sayfaları geri dönmez.
 - Arama endpoint'leri boş/yalnızca-boşluk girişlerini hızlıca `[]` ile yanıtlayarak gereksiz DB bağlantısını önler.

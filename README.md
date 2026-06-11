@@ -136,6 +136,7 @@ docker-compose exec api alembic upgrade head
 
 ## Health Checks & Security Notes
 - Includes JWT Authentication and Authorization using OAuth2 standards.
+- **Global Lockdown**: All application endpoints (Categories, Components, Invoices, AI Suggestions) are strictly protected by JWT at the router level. Only `/health` and authentication routes remain public.
 - The `/health` endpoint should perform a safe SQLAlchemy check using: `db.execute(text("SELECT 1"))`.
 - Missing routes and errors return structured JSON error responses (no HTML error pages).
 - Search endpoints validate empty/whitespace-only input and return `[]` immediately to avoid unnecessary DB connections.
