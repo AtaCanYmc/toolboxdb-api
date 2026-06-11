@@ -4,8 +4,8 @@ from src.db import get_db
 from src import models, schemas
 from sqlalchemy.orm import Session
 from typing import List
-from src.routes.auth_deps import get_current_user
 from sqlalchemy import or_
+from src.routes.auth_deps import RoleChecker
 
 component_router = APIRouter(prefix="/api/v1/components", tags=["Components"])
 
@@ -13,7 +13,7 @@ component_router = APIRouter(prefix="/api/v1/components", tags=["Components"])
 @component_router.get("/", response_model=List[schemas.ComponentResponse])
 async def list_components(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
     skip: int = 0,
     limit: int = 100,
 ):
@@ -31,7 +31,7 @@ async def list_components(
 @component_router.get("/search", response_model=List[schemas.ComponentResponse])
 async def search_components(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
     search: str = "",
     skip: int = 0,
     limit: int = 100,
@@ -62,7 +62,7 @@ async def search_components(
 async def create_component(
     component: schemas.ComponentCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
 ):
     component_data = component.model_dump()
     component_data["user_id"] = current_user.id
@@ -78,7 +78,7 @@ async def update_component(
     component_id: UUID,
     component_update: schemas.ComponentUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
 ):
     db_component = (
         db.query(models.Component)
@@ -103,7 +103,7 @@ async def update_component(
 async def delete_component(
     component_id: UUID,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
 ):
     db_component = (
         db.query(models.Component)

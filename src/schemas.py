@@ -16,12 +16,14 @@ class UserRegister(BaseModel):
     username: str = Field(..., description="Unique username")
     email: str = Field(..., description="User's email address")
     password: str = Field(..., min_length=6, description="Plain text password")
+    role: str = Field("user", description="User role: admin, user, chatter")
 
 
 class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    role: str
     created_at: datetime
 
     class Config:

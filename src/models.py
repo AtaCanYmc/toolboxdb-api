@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy import (
     Column,
     String,
@@ -11,9 +13,15 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-import uuid
+import enum
 from src.db import Base
 from src.utils.time_utils import get_utc_now
+
+
+class UserRole(str, enum.Enum):
+    ADMIN = "admin"
+    USER = "user"
+    CHATTER = "chatter"
 
 
 class User(Base):
@@ -22,6 +30,7 @@ class User(Base):
     username = Column(String(50), unique=True, index=True, nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
+    role = Column(String(20), default=UserRole.USER.value, nullable=False)
     created_at = Column(DateTime(timezone=True), default=get_utc_now)
     components = relationship(
         "Component", back_populates="user", cascade="all, delete-orphan"

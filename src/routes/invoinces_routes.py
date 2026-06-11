@@ -12,13 +12,9 @@ from typing import List
 from src.pdf import PDFService
 from src.cache import get_redis
 from typing import Optional, Any
-from src.routes.auth_deps import get_current_user
+from src.routes.auth_deps import RoleChecker
 
-invoinces_router = APIRouter(
-    prefix="/api/v1/invoices",
-    tags=["Invoices"],
-    dependencies=[Depends(get_current_user)],
-)
+invoinces_router = APIRouter(prefix="/api/v1/invoices", tags=["Invoices"])
 
 
 # =====================================================================
@@ -31,6 +27,7 @@ async def upload_and_process_invoice(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     llm: LLMProvider = Depends(get_llm_provider),
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
     full_text = PDFService.extract_text(file)
 
@@ -77,6 +74,7 @@ async def approve_invoice(
     invoice_id: UUID,
     db: Session = Depends(get_db),
     redis: Optional[Any] = Depends(get_redis),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
 ):
     items = (
         db.query(models.InvoiceItem)
@@ -173,7 +171,12 @@ async def approve_invoice(
 
 
 @invoinces_router.get("/", response_model=List[schemas.InvoiceResponse])
-async def list_invoices(db: Session = Depends(get_db), skip: int = 0, limit: int = 50):
+async def list_invoices(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 50,
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
+):
     """List all invoices in the system along with their items."""
     return (
         db.query(models.Invoice)
@@ -185,7 +188,11 @@ async def list_invoices(db: Session = Depends(get_db), skip: int = 0, limit: int
 
 
 @invoinces_router.get("/{invoice_id}", response_model=schemas.InvoiceResponse)
-async def get_invoice_detail(invoice_id: UUID, db: Session = Depends(get_db)):
+async def get_invoice_detail(
+    invoice_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
+):
     """Fetch all details and items of a specific invoice by ID."""
     invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
     if not invoice:
@@ -196,7 +203,11 @@ async def get_invoice_detail(invoice_id: UUID, db: Session = Depends(get_db)):
 
 
 @invoinces_router.delete("/{invoice_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_invoice(invoice_id: UUID, db: Session = Depends(get_db)):
+async def delete_invoice(
+    invoice_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
+):
     """Delete the invoice and all its unprocessed items in the approval pool."""
     invoice = db.query(models.Invoice).filter(models.Invoice.id == invoice_id).first()
     if not invoice:
@@ -219,6 +230,7 @@ async def update_invoice_item(
     item_id: UUID,
     item_update: schemas.InvoiceItemBase,  # Kullanıcı adı, adet veya kategoriyi düzeltebilir
     db: Session = Depends(get_db),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
 ):
     """
     Manually edit an item in the approval pool.
@@ -249,7 +261,11 @@ async def update_invoice_item(
 
 
 @invoinces_router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_invoice_item(item_id: UUID, db: Session = Depends(get_db)):
+async def delete_invoice_item(
+    item_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
+):
     """Completely remove an unwanted or incorrect item from the invoice approval pool."""
     db_item = (
         db.query(models.InvoiceItem).filter(models.InvoiceItem.id == item_id).first()

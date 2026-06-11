@@ -35,7 +35,10 @@ async def register(user: schemas.UserRegister, db: Session = Depends(get_db)):
     # Hash password and save user
     hashed_password = get_password_hash(user.password)
     db_user = models.User(
-        username=user.username, email=user.email, hashed_password=hashed_password
+        username=user.username,
+        email=user.email,
+        hashed_password=hashed_password,
+        role=user.role,
     )
 
     db.add(db_user)

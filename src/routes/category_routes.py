@@ -6,12 +6,11 @@ import json
 from typing import Optional, Any
 from sqlalchemy.orm import Session
 from typing import List
-from src.routes.auth_deps import get_current_user
+from src.routes.auth_deps import RoleChecker
 
 category_router = APIRouter(
     prefix="/api/v1/category",
     tags=["Category"],
-    dependencies=[Depends(get_current_user)],
 )
 
 
@@ -21,6 +20,7 @@ async def list_categories(
     redis: Optional[Any] = Depends(get_redis),
     skip: int = 0,
     limit: int = 100,
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
     cache_key = "categories:all"
     # Try cache first
@@ -62,7 +62,11 @@ async def list_categories(
 
 @category_router.get("/search", response_model=List[schemas.CategoryResponse])
 async def search_categories(
-    db: Session = Depends(get_db), search: str = "", skip: int = 0, limit: int = 100
+    db: Session = Depends(get_db),
+    search: str = "",
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(RoleChecker(["admin", "user"])),
 ):
     if len(search.strip()) == 0:
         return []
@@ -85,6 +89,7 @@ async def create_category(
     category: schemas.CategoryBase,  # name alanını içerir
     db: Session = Depends(get_db),
     redis: Optional[Any] = Depends(get_redis),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
 ):
     # Aynı isimde kategori var mı kontrolü (Bonus: mükerrer kayıtları önler)
     existing_category = (
@@ -117,6 +122,7 @@ async def update_category(
     category_update: schemas.CategoryBase,
     db: Session = Depends(get_db),
     redis: Optional[Any] = Depends(get_redis),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
 ):
     db_category = (
         db.query(models.Category).filter(models.Category.id == category_id).first()
@@ -142,6 +148,7 @@ async def delete_category(
     category_id: int,
     db: Session = Depends(get_db),
     redis: Optional[Any] = Depends(get_redis),
+    current_user: models.User = Depends(RoleChecker(["admin"])),
 ):
     db_category = (
         db.query(models.Category).filter(models.Category.id == category_id).first()

@@ -35,3 +35,16 @@ async def get_current_user(
         raise credentials_exception
 
     return user
+
+
+class RoleChecker:
+    def __init__(self, allowed_roles: list):
+        self.allowed_roles = allowed_roles
+
+    def __call__(self, user: models.User = Depends(get_current_user)):
+        if user.role not in self.allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Operation not permitted. Required roles: {', '.join(self.allowed_roles)}",
+            )
+        return user

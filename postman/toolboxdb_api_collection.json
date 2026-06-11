@@ -44,7 +44,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"username\": \"admin\",\n    \"email\": \"admin@example.com\",\n    \"password\": \"secret123\"\n}"
+              "raw": "{\n    \"username\": \"admin_user\",\n    \"email\": \"admin@example.com\",\n    \"password\": \"secret123\",\n    \"role\": \"admin\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/register",
@@ -57,7 +57,8 @@
                 "auth",
                 "register"
               ]
-            }
+            },
+            "description": "Registers a new user. Role can be 'admin', 'user', or 'chatter'."
           },
           "response": []
         },
