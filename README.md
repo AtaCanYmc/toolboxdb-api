@@ -119,6 +119,19 @@ uvicorn main:app --reload
 
 The application typically runs at `http://127.0.0.1:8000`. Swagger UI: `http://127.0.0.1:8000/docs`
 
+## Running with Docker Compose
+To simplify local development, the project includes Docker configuration to spin up the API and Redis together.
+
+1. Create your `.env` file if you haven't already.
+2. Build and start the containers:
+```bash
+docker-compose up --build
+```
+3. To run Alembic migrations inside the Docker container:
+```bash
+docker-compose exec api alembic upgrade head
+```
+
 ## Health Checks & Security Notes
 - The `/health` endpoint should perform a safe SQLAlchemy check using: `db.execute(text("SELECT 1"))`.
 - Missing routes and errors return structured JSON error responses (no HTML error pages).
