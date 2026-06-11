@@ -299,6 +299,16 @@
                   "value": "100"
                 }
               ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
             }
           },
           "response": []
@@ -323,6 +333,16 @@
                 {
                   "key": "search",
                   "value": "ESP32"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
                 }
               ]
             }
