@@ -129,7 +129,7 @@ async def update_category(
         db.query(models.Category).filter(models.Category.id == category_id).first()
     )
     if not db_category:
-        raise HTTPException(status_code=404, detail="Kategori bulunamadı.")
+        raise HTTPException(status_code=404, detail=_("Kategori bulunamadı."))
 
     db_category.name = category_update.name
 
@@ -155,7 +155,7 @@ async def delete_category(
         db.query(models.Category).filter(models.Category.id == category_id).first()
     )
     if not db_category:
-        raise HTTPException(status_code=404, detail="Kategori bulunamadı.")
+        raise HTTPException(status_code=404, detail=_("Kategori bulunamadı."))
 
     db.delete(db_category)
     db.commit()

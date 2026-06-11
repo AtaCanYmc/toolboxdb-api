@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from sqlalchemy import or_
 from src.routes.auth_deps import RoleChecker
+from fastapi_i18n import _
 
 component_router = APIRouter(prefix="/api/v1/components", tags=["Components"])
 
@@ -88,7 +89,7 @@ async def update_component(
     )
 
     if not db_component:
-        raise HTTPException(status_code=404, detail="Component not found")
+        raise HTTPException(status_code=404, detail=_("Component not found"))
 
     update_data = component_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -113,7 +114,7 @@ async def delete_component(
     )
 
     if not db_component:
-        raise HTTPException(status_code=404, detail="Component not found.")
+        raise HTTPException(status_code=404, detail=_("Component not found."))
 
     db.delete(db_component)
     db.commit()

@@ -85,10 +85,10 @@ async def approve_invoice(
         query = query.filter(models.Invoice.user_id == current_user.id)
     invoice = query.first()
     if not invoice:
-        raise HTTPException(status_code=404, detail="Invoice not found.")
+        raise HTTPException(status_code=404, detail=_("Invoice not found."))
     if current_user.role != "admin" and invoice.user_id != current_user.id:
         raise HTTPException(
-            status_code=403, detail="Not authorized to approve this invoice."
+            status_code=403, detail=_("Not authorized to approve this invoice.")
         )
 
     items = (
@@ -219,7 +219,7 @@ async def get_invoice_detail(
     invoice = query.first()
     if not invoice:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found."
+            status_code=status.HTTP_404_NOT_FOUND, detail=_("Invoice not found.")
         )
     return invoice
 
@@ -237,7 +237,7 @@ async def delete_invoice(
     invoice = query.first()
     if not invoice:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found."
+            status_code=status.HTTP_404_NOT_FOUND, detail=_("Invoice not found.")
         )
 
     db.delete(invoice)
@@ -265,16 +265,18 @@ async def update_invoice_item(
         db.query(models.InvoiceItem).filter(models.InvoiceItem.id == item_id).first()
     )
     if not db_item:
-        raise HTTPException(status_code=404, detail="Invoice item not found.")
+        raise HTTPException(status_code=404, detail=_("Invoice item not found."))
 
     if current_user.role != "admin" and db_item.invoice.user_id != current_user.id:
         raise HTTPException(
-            status_code=403, detail="Not authorized to delete this item."
+            status_code=403, detail=_("Not authorized to delete this item.")
         )
-        raise HTTPException(status_code=404, detail="Invoice item not found.")
+        raise HTTPException(status_code=404, detail=_("Invoice item not found."))
 
     if current_user.role != "admin" and db_item.invoice.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to edit this item.")
+        raise HTTPException(
+            status_code=403, detail=_("Not authorized to edit this item.")
+        )
 
     if db_item.is_processed:
         raise HTTPException(
@@ -305,16 +307,18 @@ async def delete_invoice_item(
         db.query(models.InvoiceItem).filter(models.InvoiceItem.id == item_id).first()
     )
     if not db_item:
-        raise HTTPException(status_code=404, detail="Invoice item not found.")
+        raise HTTPException(status_code=404, detail=_("Invoice item not found."))
 
     if current_user.role != "admin" and db_item.invoice.user_id != current_user.id:
         raise HTTPException(
-            status_code=403, detail="Not authorized to delete this item."
+            status_code=403, detail=_("Not authorized to delete this item.")
         )
-        raise HTTPException(status_code=404, detail="Invoice item not found.")
+        raise HTTPException(status_code=404, detail=_("Invoice item not found."))
 
     if current_user.role != "admin" and db_item.invoice.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to edit this item.")
+        raise HTTPException(
+            status_code=403, detail=_("Not authorized to edit this item.")
+        )
 
     if db_item.is_processed:
         raise HTTPException(

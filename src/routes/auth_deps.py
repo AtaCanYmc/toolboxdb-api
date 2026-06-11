@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from src.db import get_db
 from src import models
 from src.utils.security import JWT_SECRET_KEY, ALGORITHM
+from fastapi_i18n import _
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -14,7 +15,7 @@ async def get_current_user(
 ) -> models.User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail=_("Could not validate credentials"),
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -45,6 +46,8 @@ class RoleChecker:
         if user.role not in self.allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Operation not permitted. Required roles: {', '.join(self.allowed_roles)}",
+                detail=_(
+                    f"Operation not permitted. Required roles: {', '.join(self.allowed_roles)}"
+                ),
             )
         return user
