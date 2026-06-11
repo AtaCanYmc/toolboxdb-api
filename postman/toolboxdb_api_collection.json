@@ -1,19 +1,45 @@
 {
   "info": {
-    "_postman_id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
-    "name": "ToolboxDB API - Smart Component Management",
-    "description": "Production-ready integration testing collection for ToolboxDB API. Validates Core, Category CRUD, Component Queries, and full AI Invoice Workflow with Dynamic Postman variables.",
+    "name": "ToolboxDB API (RBAC & Full Coverage)",
+    "description": "Comprehensive Postman collection for ToolboxDB covering all endpoints, RBAC examples, and AI integration flows.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
   "item": [
     {
-      "name": "Core & Infrastructure",
+      "name": "System & Health",
+      "description": "Public system endpoints for health checks.",
       "item": [
+        {
+          "name": "Welcome / Root",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          }
+        },
         {
           "name": "Health Check",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
               "raw": "{{base_url}}/health",
               "host": [
@@ -22,18 +48,17 @@
               "path": [
                 "health"
               ]
-            },
-            "description": "Checks API sanity and Supabase database cluster connectivity."
-          },
-          "response": []
+            }
+          }
         }
       ]
     },
     {
       "name": "Authentication",
+      "description": "Public endpoints for registration and token retrieval.",
       "item": [
         {
-          "name": "Register User",
+          "name": "1. Register Admin User",
           "request": {
             "method": "POST",
             "header": [
@@ -42,10 +67,6 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"username\": \"admin_user\",\n    \"email\": \"admin@example.com\",\n    \"password\": \"secret123\",\n    \"role\": \"admin\"\n}"
-            },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/register",
               "host": [
@@ -58,20 +79,79 @@
                 "register"
               ]
             },
-            "description": "Registers a new user. Role can be 'admin', 'user', or 'chatter'."
-          },
-          "response": []
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin_user\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"admin\"\n}"
+            }
+          }
         },
         {
-          "name": "Login User",
+          "name": "2. Register Standard User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"standart_user\",\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"user\"\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Register Chatter User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"chatter_user\",\n  \"email\": \"chatter@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"chatter\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Login (Get Token)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access_token) {",
+                  "    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+                  "    console.log(\"Token automatically saved to variables.\");",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -86,21 +166,6 @@
                 "value": "application/x-www-form-urlencoded"
               }
             ],
-            "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                {
-                  "key": "username",
-                  "value": "admin",
-                  "type": "text"
-                },
-                {
-                  "key": "password",
-                  "value": "secret123",
-                  "type": "text"
-                }
-              ]
-            },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/login",
               "host": [
@@ -112,72 +177,54 @@
                 "auth",
                 "login"
               ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "admin_user",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                }
+              ]
             }
-          },
-          "response": []
+          }
         }
       ]
     },
     {
-      "name": "Categories (Cached)",
+      "name": "Categories",
+      "description": "Category operations. Read (All), Write (Admin Only).",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      },
       "item": [
         {
-          "name": "Create Category",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 201) {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.collectionVariables.set('last_category_id', jsonData.id);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"name\": \"Microcontroller\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/category",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "category"
-              ]
-            },
-            "description": "Creates a new category and invalidates 'categories:all' cache. Saves generated ID automatically."
-          },
-          "response": []
-        },
-        {
-          "name": "Get All Categories",
+          "name": "List Categories (Paginated)",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{base_url}}/api/v1/category?skip=0&limit=100",
+              "raw": "{{base_url}}/api/v1/category/?skip=0&limit=10",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "category"
+                "category",
+                ""
               ],
               "query": [
                 {
@@ -186,21 +233,18 @@
                 },
                 {
                   "key": "limit",
-                  "value": "100"
+                  "value": "10"
                 }
               ]
-            },
-            "description": "Fetches categories list utilizing Redis backend layer."
-          },
-          "response": []
+            }
+          }
         },
         {
           "name": "Search Categories",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{base_url}}/api/v1/category/search?search=Micro",
+              "raw": "{{base_url}}/api/v1/category/search?search=sensor",
               "host": [
                 "{{base_url}}"
               ],
@@ -213,16 +257,42 @@
               "query": [
                 {
                   "key": "search",
-                  "value": "Micro",
-                  "description": "FIXED: Key changed from 'q' to 'search' to match FastAPI parameters."
+                  "value": "sensor"
                 }
               ]
             }
-          },
-          "response": []
+          }
         },
         {
-          "name": "Update Category",
+          "name": "Create Category (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/category/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "category",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Microcontrollers\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Category (Admin)",
           "request": {
             "method": "PUT",
             "header": [
@@ -231,32 +301,30 @@
                 "value": "application/json"
               }
             ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/category/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "category",
+                "1"
+              ]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"Microcontroller Updated\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/category/{{last_category_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "category",
-                "{{last_category_id}}"
-              ]
+              "raw": "{\n  \"name\": \"Advanced Microcontrollers\"\n}"
             }
-          },
-          "response": []
+          }
         },
         {
-          "name": "Delete Category",
+          "name": "Delete Category (Admin)",
           "request": {
             "method": "DELETE",
-            "header": [],
             "url": {
-              "raw": "{{base_url}}/api/v1/category/{{last_category_id}}",
+              "raw": "{{base_url}}/api/v1/category/1",
               "host": [
                 "{{base_url}}"
               ],
@@ -264,13 +332,16 @@
                 "api",
                 "v1",
                 "category",
-                "{{last_category_id}}"
+                "1"
               ]
             }
-          },
-          "response": []
+          }
         }
-      ],
+      ]
+    },
+    {
+      "name": "Components",
+      "description": "Component operations. Read (All), Write (Admin Only). Isolated per user_id.",
       "auth": {
         "type": "bearer",
         "bearer": [
@@ -280,45 +351,30 @@
             "type": "string"
           }
         ]
-      }
-    },
-    {
-      "name": "Components",
+      },
       "item": [
         {
           "name": "List Components",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
-              "raw": "{{base_url}}/api/v1/components?skip=0&limit=100",
+              "raw": "{{base_url}}/api/v1/components/",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "components"
-              ],
-              "query": [
-                {
-                  "key": "skip",
-                  "value": "0"
-                },
-                {
-                  "key": "limit",
-                  "value": "100"
-                }
+                "components",
+                ""
               ]
             }
-          },
-          "response": []
+          }
         },
         {
           "name": "Search Components",
           "request": {
             "method": "GET",
-            "header": [],
             "url": {
               "raw": "{{base_url}}/api/v1/components/search?search=ESP32",
               "host": [
@@ -337,10 +393,87 @@
                 }
               ]
             }
-          },
-          "response": []
+          }
+        },
+        {
+          "name": "Create Component (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/components/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "components",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ESP32-WROOM-32\",\n  \"quantity\": 15,\n  \"category_id\": 1,\n  \"datasheet_url\": \"https://example.com/datasheet.pdf\",\n  \"technical_specs\": {\n    \"voltage\": \"3.3V\",\n    \"wifi\": \"802.11 b/g/n\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Component (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/components/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "components",
+                "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ESP32-WROOM-32 (Updated)\",\n  \"quantity\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Component (Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/components/a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "components",
+                "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              ]
+            }
+          }
         }
-      ],
+      ]
+    },
+    {
+      "name": "Invoices",
+      "description": "Invoice management. Upload (Admin/User), Approve/Edit/Delete (Admin Only).",
       "auth": {
         "type": "bearer",
         "bearer": [
@@ -350,50 +483,12 @@
             "type": "string"
           }
         ]
-      }
-    },
-    {
-      "name": "Invoices & AI Flow",
+      },
       "item": [
         {
-          "name": "Upload PDF Invoice",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200 || pm.response.code === 201) {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.collectionVariables.set('active_invoice_id', jsonData.id);",
-                  "    if(jsonData.items && jsonData.items.length > 0) {",
-                  "        pm.collectionVariables.set('active_item_id', jsonData.items[0].id);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "1. Upload PDF Invoice (Admin & User)",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "X-Correlation-ID",
-                "value": "postman-tracing-uuid-123",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": [],
-                  "description": "Select sample pdf here."
-                }
-              ]
-            },
             "url": {
               "raw": "{{base_url}}/api/v1/invoices/upload",
               "host": [
@@ -406,37 +501,24 @@
                 "upload"
               ]
             },
-            "description": "Extracts text, parses via LLM, maps to draft staging tables. Saves generated UUIDs automatically."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Invoice Detail",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/invoices/{{active_invoice_id}}",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "invoices",
-                "{{active_invoice_id}}"
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
               ]
             }
-          },
-          "response": []
+          }
         },
         {
-          "name": "Approve Invoice Staging Items",
+          "name": "2. List All Invoices",
           "request": {
-            "method": "POST",
-            "header": [],
+            "method": "GET",
             "url": {
-              "raw": "{{base_url}}/api/v1/invoices/{{active_invoice_id}}/approve",
+              "raw": "{{base_url}}/api/v1/invoices/",
               "host": [
                 "{{base_url}}"
               ],
@@ -444,16 +526,132 @@
                 "api",
                 "v1",
                 "invoices",
-                "{{active_invoice_id}}",
-                "approve"
+                ""
               ]
-            },
-            "description": "Processes staging items into final core inventory components."
-          },
-          "response": []
+            }
+          }
         },
         {
-          "name": "Suggest AI Project Ideas",
+          "name": "3. Get Invoice Detail",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "f1c50e93-2710-449e-b9b5-6804a9af35b8"
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Fix/Edit Extracted Item (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/items/c810d7a6-b519-482a-912a-048b2611a5b8",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "items",
+                "c810d7a6-b519-482a-912a-048b2611a5b8"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clean_name\": \"Corrected Component Name\",\n  \"quantity\": 100,\n  \"category_name\": \"Resistors\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Delete Extracted Item (Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/items/c810d7a6-b519-482a-912a-048b2611a5b8",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "items",
+                "c810d7a6-b519-482a-912a-048b2611a5b8"
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Approve & Add to Inventory (Admin)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "f1c50e93-2710-449e-b9b5-6804a9af35b8",
+                "approve"
+              ]
+            }
+          }
+        },
+        {
+          "name": "7. Delete Entire Invoice (Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/invoices/f1c50e93-2710-449e-b9b5-6804a9af35b8",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invoices",
+                "f1c50e93-2710-449e-b9b5-6804a9af35b8"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Suggestions",
+      "description": "AI driven endpoints. Available to all roles (Admin, User, Chatter).",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "1. Generate Project Ideas",
           "request": {
             "method": "POST",
             "header": [
@@ -462,10 +660,6 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"extra_components\": [\"OLED Ekran i2c\", \"SG90 Servo Motor\"],\n    \"difficulty_level\": \"Medium\",\n    \"extra_message\": \"Ak\u0131ll\u0131 ev veya otomasyon odakl\u0131 bir \u015feyler \u00f6nerebilir misin reis\"\n}"
-            },
             "url": {
               "raw": "{{base_url}}/api/v1/suggestions/project-ideas",
               "host": [
@@ -478,72 +672,41 @@
                 "project-ideas"
               ]
             },
-            "description": "Reads core inventory automatically and processes structural project recipe cards via Jinja2 & Groq backend layer."
-          },
-          "response": []
-        }
-      ],
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{access_token}}",
-            "type": "string"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"focus_area\": \"IoT or Smart Home automation\"\n}"
+            }
           }
-        ]
-      }
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
-    },
-    {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "pm.test('Response carries global X-Correlation-ID metadata', function () {",
-          "    if (pm.response.code !== 404) {",
-          "        pm.expect(pm.response.headers.has('X-Correlation-ID')).to.be.true;",
-          "    }",
-          "});"
-        ]
-      }
-    }
-  ],
-  "variable": [
-    {
-      "key": "base_url",
-      "value": "http://127.0.0.1:8000",
-      "type": "string"
-    },
-    {
-      "key": "last_category_id",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "active_invoice_id",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "active_item_id",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "access_token",
-      "value": "",
-      "type": "string"
+        },
+        {
+          "name": "2. Get Deep Project Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/suggestions/give-detail",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "suggestions",
+                "give-detail"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"project_name\": \"Smart Wi-Fi Thermostat\",\n  \"hardware_list\": [\n    \"ESP32-WROOM-32\",\n    \"DHT22 Temperature Sensor\",\n    \"5V Relay Module\",\n    \"OLED Display 0.96\"\n  ]\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }
