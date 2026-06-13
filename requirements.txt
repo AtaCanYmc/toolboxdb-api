@@ -1,3 +1,4 @@
+langgraph
 aiohappyeyeballs==2.6.2
 aiohttp==3.14.0
 aiosignal==1.4.0
