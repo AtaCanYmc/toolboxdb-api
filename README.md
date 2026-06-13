@@ -169,10 +169,15 @@ The project uses Alembic to handle database migrations dynamically. The system c
   alembic upgrade head
   ```
 
-## AI Project Suggestions
-- The system includes a new `POST /api/v1/suggestions/project-ideas` endpoint that uses LLMs (like Groq) to suggest innovative maker projects based on your current stock.
-- The `POST /api/v1/suggestions/give-detail` endpoint generates a detailed wiring guide and C++/Arduino code sketch for a specific project suggestion.
-- **Fail-Open Architecture:** If the LLM service experiences downtime or returns an error, the endpoint gracefully catches the error and returns an empty list `{"ideas": []}` (HTTP 200) instead of crashing with an HTTP 500. This ensures uninterrupted frontend operation.
+## AI Hardware Consultant Agent
+- The system includes a unified conversational endpoint `POST /api/v1/suggestions/chat` powered by LangGraph's ReAct agent.
+- This interactive agent acts as a hardware consultant capable of reasoning through complex maker workflows. It dynamically utilizes multiple tools:
+  - **Inventory Checking:** Reads your active stock to suggest projects using parts you already own.
+  - **Market Search:** Queries Turkish electronics markets to find real-time prices for missing components.
+  - **Cargo Optimization:** Groups market purchases into as few stores as possible to minimize shipping fees.
+  - **Project Detailing:** Explains circuit wiring and provides C++/Arduino code sketches.
+- **Stateless Chat Memory:** The API accepts chat history as part of the request payload, avoiding server-side memory leaks while preserving conversational context.
+- **Fail-Open Architecture:** If the LLM service experiences downtime or returns an error, the endpoint gracefully catches the error to ensure uninterrupted frontend operation.
 - **Tracing:** All requests are traced via `X-Correlation-ID`, mapping logs across API router entry/exit and LLM executions.
 
 ---
