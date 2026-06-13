@@ -249,3 +249,34 @@ class ProjectSuggestionResponse(BaseModel):
     ideas: List[ProjectIdea] = Field(
         description="List of generated creative project ideas"
     )
+
+
+class OptimizeBOMRequest(BaseModel):
+    components: List[str] = Field(
+        description="List of component names to optimize for shopping"
+    )
+    store_shipping_cost: float = Field(
+        default=50.0, description="Fixed shipping cost per unique store in TRY"
+    )
+
+
+class OptimizeBOMResponse(BaseModel):
+    optimized_cart_markdown: str = Field(
+        description="Markdown formatted text with the optimized cart and costs"
+    )
+
+
+class ChatMessage(BaseModel):
+    role: str = Field(description="Role of the sender: 'user' or 'assistant'")
+    content: str = Field(description="Content of the message")
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(description="The user's new message")
+    history: List[ChatMessage] = Field(
+        default=[], description="The conversation history"
+    )
+
+
+class ChatResponse(BaseModel):
+    response: str = Field(description="The agent's response in markdown format")

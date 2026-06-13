@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Type, List
+from typing import Type, List, TYPE_CHECKING
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from langchain_core.language_models.chat_models import BaseChatModel
 
 
 class LLMProvider(ABC):
@@ -20,6 +23,7 @@ class LLMProvider(ABC):
             response_format (Type[BaseModel]): The Pydantic model representing the expected output structure.
             existing_categories (List[str], optional): A list of existing component categories to match
                 against. Defaults to None.
+            target_language (str, optional): The target language to use. Defaults to "English".
 
         Returns:
             BaseModel: An instance of `response_format` populated with the extracted invoice data.
@@ -27,41 +31,8 @@ class LLMProvider(ABC):
         pass
 
     @abstractmethod
-    def suggest_projects(
-        self,
-        stock_components: List[str],
-        extra_components: List[str],
-        difficulty_level: str,
-        extra_message: str | None,
-        response_format: Type[BaseModel],
-        target_language: str = "English",
-    ) -> BaseModel:
+    def get_langchain_model(self) -> "BaseChatModel":
         """
-        Brainstorm innovative maker project ideas based on available components and user criteria.
-
-        Args:
-            stock_components (List[str]): List of components currently available in stock.
-            extra_components (List[str]): List of additional components the user wants to include.
-            difficulty_level (str): Target difficulty level for the projects (e.g., 'Beginner', 'Medium', 'Advanced').
-            extra_message (str | None): Optional additional instructions or theme from the user.
-            response_format (Type[BaseModel]): The Pydantic model representing the expected output structure.
-
-        Returns:
-            BaseModel: An instance of `response_format` containing the generated project ideas.
-        """
-        pass
-
-    @abstractmethod
-    def get_project_details(
-        self,
-        project_title: str,
-        project_description: str,
-        difficulty: str,
-        components: List[str],
-        response_format: Type[BaseModel],
-        target_language: str = "English",
-    ) -> BaseModel:
-        """
-        Generate detailed wiring guide and code sketch for a specific project.
+        Returns the corresponding LangChain BaseChatModel for this provider.
         """
         pass

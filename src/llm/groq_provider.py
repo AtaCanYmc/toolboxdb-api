@@ -7,6 +7,8 @@ from src.llm.prompt_provider import render_prompt
 import logging
 from src.middleware.middleware import get_correlation_id
 import time
+from langchain_groq import ChatGroq
+from langchain_core.language_models.chat_models import BaseChatModel
 
 logger = logging.getLogger("api_tracker")
 
@@ -68,118 +70,9 @@ class GroqProvider(LLMProvider):
             )
             raise e
 
-    def suggest_projects(
-        self,
-        stock_components: List[str],
-        extra_components: List[str],
-        difficulty_level: str,
-        extra_message: str | None,
-        response_format: Type[BaseModel],
-        target_language: str = "English",
-    ) -> BaseModel:
-        """
-        Brainstorm innovative maker project ideas based on available components and user criteria.
-         - stock_components: The basic components the user has (e.g., "Arduino, LED, Resistor").
-         - extra_components: Additional components that can be used (e.g., "Bluetooth module, LCD screen").
-         - difficulty_level: The desired difficulty level for the projects.
-         - extra_message: Any additional instructions or preferences from the user.
-         - response_format: The Pydantic model class that defines the expected structure of the response.
-         Returns a structured response containing project suggestions that fit the given criteria.
-        """
-
-        system_prompt = render_prompt(
-            template_name="project_suggest_system_prompt.jinja2",
-            context={
-                "stock_components": stock_components,
-                "extra_components": extra_components,
-                "difficulty_level": difficulty_level,
-                "extra_message": extra_message,
-                "target_language": target_language,
-            },
+    def get_langchain_model(self) -> BaseChatModel:
+        return ChatGroq(
+            api_key=self.client.client.api_key,  # instructor client wraps groq client
+            model=self.model,
+            temperature=0.0,
         )
-
-        user_content = f"Generate 3-5 innovative project suggestions for difficulty level: {difficulty_level}."
-
-        corr_id = get_correlation_id()
-        logger.info(
-            f"Sending suggest_projects request to Groq using model: {self.model}",
-            extra={"correlation_id": corr_id},
-        )
-
-        start_time = time.time()
-        try:
-            result = self.client.chat.completions.create(  # type: ignore
-                model=self.model,
-                response_model=response_format,
-                messages=[  # type: ignore
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_content},
-                ],
-            )
-            process_time = round((time.time() - start_time) * 1000, 2)
-            logger.info(
-                f"Groq suggest_projects request completed in {process_time}ms",
-                extra={"correlation_id": corr_id},
-            )
-            return result
-        except Exception as e:
-            process_time = round((time.time() - start_time) * 1000, 2)
-            logger.error(
-                f"Groq suggest_projects request failed after {process_time}ms: {str(e)}",
-                extra={"correlation_id": corr_id},
-                exc_info=True,
-            )
-            raise e
-
-    def get_project_details(
-        self,
-        project_title: str,
-        project_description: str,
-        difficulty: str,
-        components: List[str],
-        response_format: Type[BaseModel],
-        target_language: str = "English",
-    ) -> BaseModel:
-        system_prompt = render_prompt(
-            template_name="project_detail_system_prompt.jinja2",
-            context={
-                "project_title": project_title,
-                "project_description": project_description,
-                "difficulty": difficulty,
-                "components": components,
-                "target_language": target_language,
-            },
-        )
-
-        user_content = f"Please create a detailed circuit diagram and code sketch for the '{project_title}' project."
-
-        corr_id = get_correlation_id()
-        logger.info(
-            f"Sending get_project_details request to Groq using model: {self.model}",
-            extra={"correlation_id": corr_id},
-        )
-
-        start_time = time.time()
-        try:
-            result = self.client.chat.completions.create(  # type: ignore
-                model=self.model,
-                response_model=response_format,
-                messages=[  # type: ignore
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_content},
-                ],
-            )
-            process_time = round((time.time() - start_time) * 1000, 2)
-            logger.info(
-                f"Groq get_project_details request completed in {process_time}ms",
-                extra={"correlation_id": corr_id},
-            )
-            return result
-        except Exception as e:
-            process_time = round((time.time() - start_time) * 1000, 2)
-            logger.error(
-                f"Groq get_project_details request failed after {process_time}ms: {str(e)}",
-                extra={"correlation_id": corr_id},
-                exc_info=True,
-            )
-            raise e

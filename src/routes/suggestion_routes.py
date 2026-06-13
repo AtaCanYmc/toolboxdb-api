@@ -1,6 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException, Header
-import groq
-from pydantic import ValidationError
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from src import models, schemas
 from src.db import get_db
@@ -11,148 +9,75 @@ from src.middleware.middleware import get_correlation_id
 from src.routes.auth_deps import RoleChecker
 from fastapi_i18n import _
 
+from src.agents.hardware_consultant import HardwareConsultantAgent
+from src.llm.tools.stock_tool import get_stock_search_tool
+from src.llm.tools.inventory_tool import get_full_inventory_tool
+
 logger = logging.getLogger("api_tracker")
 
 suggestion_router = APIRouter(
     prefix="/api/v1/suggestions",
-    tags=["Project Insights"],
+    tags=["Hardware Consultant"],
 )
 
 
 @suggestion_router.post(
-    "/project-ideas",
-    response_model=schemas.ProjectSuggestionResponse,
+    "/chat",
+    response_model=schemas.ChatResponse,
     status_code=status.HTTP_200_OK,
 )
-async def get_ai_project_suggestions(
-    payload: schemas.ProjectSuggestionRequest,
-    accept_language: str = Header("en"),
+async def hardware_consultant_chat(
+    payload: schemas.ChatRequest,
     db: Session = Depends(get_db),
     llm: LLMProvider = Depends(get_llm_provider),
     current_user: models.User = Depends(RoleChecker(["admin", "user", "chatter"])),
 ):
     """
-    Automatically analyzes active stock components in the database.
-    Blends them with extra parts, difficulty level, and special themes
-    provided by the user to generate AI-based structured project recipes.
+    Unified interactive Hardware Consultant Agent.
+    Handles project brainstorming, BOM extraction, circuit design, and market/cargo optimization dynamically.
     """
+    corr_id = get_correlation_id()
+    logger.info(
+        f"Processing chat message for user {current_user.id}",
+        extra={"correlation_id": corr_id},
+    )
+
     try:
-        corr_id = get_correlation_id()
-        logger.info(
-            "Fetching active components for project suggestions",
-            extra={"correlation_id": corr_id},
-        )
-        active_components = (
-            db.query(models.Component)
-            .filter(models.Component.quantity > 0)
-            .filter(models.Component.user_id == current_user.id)
-            .all()
+        # 1. Fetch the underlying LangChain model
+        lc_model = llm.get_langchain_model()
+
+        # 2. Instantiate Dynamic DB-aware Tools
+        stock_tool = get_stock_search_tool(db, current_user.id)
+        inventory_tool = get_full_inventory_tool(db, current_user.id)
+
+        # 3. Create the Consultant Agent
+        agent = HardwareConsultantAgent(
+            llm=lc_model, extra_tools=[stock_tool, inventory_tool]
         )
 
-        # 2. Prepare the pure string list expected by the LLM layer (Loose Coupling)
-        stock_component_names = [c.name for c in active_components]
+        # 4. Extract history from payload
+        history_dicts = [
+            {"role": msg.role, "content": msg.content} for msg in payload.history
+        ]
 
-        logger.info(
-            f"Generating suggestions with difficulty: {payload.difficulty_level}",
-            extra={"correlation_id": corr_id},
-        )
-
-        # 3. Trigger the newly added abstract method in our ABC Contract
-        ai_suggestions = llm.suggest_projects(
-            stock_components=stock_component_names,
-            extra_components=payload.extra_components,
-            difficulty_level=payload.difficulty_level,
-            extra_message=payload.extra_message,
-            response_format=schemas.ProjectSuggestionResponse,
-            target_language=accept_language.split(",")[0],
-        )
+        # 5. Invoke the Agent
+        response_text = agent.chat(user_input=payload.message, history=history_dicts)
 
         logger.info(
-            "Project suggestions generated successfully",
+            "Chat response generated successfully",
             extra={"correlation_id": corr_id},
         )
-        return ai_suggestions
+        return schemas.ChatResponse(response=response_text)
 
-    except (groq.APIError, ValidationError, RuntimeError) as ai_err:
-        corr_id = get_correlation_id()
-        logger.warning(
-            f"AI layer error (Fail-Open): {str(ai_err)}",
-            extra={"correlation_id": corr_id},
-            exc_info=True,
-        )
-        # Fail-Open Resilience Layer: Return an empty response instead of throwing an error
-        return schemas.ProjectSuggestionResponse(ideas=[])
-    except Exception:
-        corr_id = get_correlation_id()
+    except Exception as e:
         logger.error(
-            "Critical system error (While generating project ideas)",
+            f"Error in hardware consultant chat: {str(e)}",
             extra={"correlation_id": corr_id},
             exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=_("A critical error occurred on the server side."),
-        )
-
-
-@suggestion_router.post(
-    "/give-detail",
-    response_model=schemas.AIProjectSuggestion,
-    status_code=status.HTTP_200_OK,
-)
-async def get_project_details(
-    payload: schemas.ProjectDetailRequest,
-    accept_language: str = Header("en"),
-    llm: LLMProvider = Depends(get_llm_provider),
-    current_user: models.User = Depends(RoleChecker(["admin", "user", "chatter"])),
-):
-    """
-    Fetches the circuit diagram and sample code sketch of a specific project from the LLM.
-    """
-    try:
-        corr_id = get_correlation_id()
-        logger.info(
-            f"Getting details for project: {payload.project_title}",
-            extra={"correlation_id": corr_id},
-        )
-
-        project_details = llm.get_project_details(
-            project_title=payload.project_title,
-            project_description=payload.project_description,
-            difficulty=payload.difficulty,
-            components=payload.components,
-            response_format=schemas.AIProjectSuggestion,
-            target_language=accept_language.split(",")[0],
-        )
-
-        logger.info(
-            "Project details generated successfully",
-            extra={"correlation_id": corr_id},
-        )
-        return project_details
-
-    except (groq.APIError, ValidationError, RuntimeError) as ai_err:
-        corr_id = get_correlation_id()
-        logger.warning(
-            f"AI layer error (Fail-Open): {str(ai_err)}",
-            extra={"correlation_id": corr_id},
-            exc_info=True,
-        )
-        # Fail-Open: Return empty content so the system doesn't crash
-        return schemas.AIProjectSuggestion(
-            project_name=payload.project_title,
-            difficulty=payload.difficulty,
-            wiring_guide="The AI service is currently unavailable.",
-            code_sketch="// Temporarily unavailable.",
-        )
-    except Exception:
-        corr_id = get_correlation_id()
-        logger.error(
-            "Critical system error (While generating project details)",
-            extra={"correlation_id": corr_id},
-            exc_info=True,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=_("A critical error occurred on the server side."),
+            detail=_(
+                "An error occurred while communicating with the hardware consultant."
+            ),
         )
