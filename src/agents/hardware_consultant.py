@@ -1,4 +1,4 @@
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from langchain_core.language_models.chat_models import BaseChatModel
 from src.llm.tools.market_tool import unified_market_search_tool
 from src.llm.prompt_provider import render_prompt
@@ -16,10 +16,10 @@ class HardwareConsultantAgent:
             template_name="hardware_consultant_system_prompt.jinja2", context={}
         )
 
-        self.agent_executor = create_react_agent(
-            model=self.llm,  # type: ignore
+        self.agent_executor = create_agent(
+            model=self.llm,
             tools=self.tools,
-            state_modifier=self.system_prompt,
+            system_prompt=self.system_prompt,
         )
 
     def chat(self, user_input: str, history: List[Dict[str, str]]) -> str:
